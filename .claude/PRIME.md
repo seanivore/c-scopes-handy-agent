@@ -2,6 +2,11 @@
 
 Read the following documents to understand the context of the project and the initial thoughts on how to move forward. 
 
+Run the following command: 
+
+```bash
+ptree
+```
 ## Context 
 
 I was chatting with a developer on Twitter who is using visual AI intelligence and computer front camera to interact with elements, creating games and more. My immediate thought was "hrm, well we need 5G edge for VR/AR to actually, finally become a thing ... but ... oh, well as AI gets better and better at recognizing visuals, so ... "let's make games, teach me!" 
@@ -46,3 +51,4 @@ Starting with Tetris
 - collidingScopes already has gesture Tetris
 - Perfect for perfecting core interactions
 - Fun and immediately understandable 
+

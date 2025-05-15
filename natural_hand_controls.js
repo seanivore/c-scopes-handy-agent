@@ -1,10 +1,10 @@
 /**
- * bigHandControls.js
- * BIG ITALIAN GESTURES for Tetris - no tiny finger stuff!
+ * naturalHandControls.js
+ * Natural hand gestures for Tetris - no finger tracking!
  */
 
-// Configuration for BIG gestures
-const bigGestureConfig = {
+// Configuration for natural hand gestures
+const gestureConfig = {
     enabled: false,
     swipeThreshold: 0.2,        // How far to swipe
     swipeSpeed: 300,            // Minimum pixels/sec
@@ -22,15 +22,15 @@ let hands = null;
 let camera = null;
 let trackingStarted = false;
 
-// Big gesture states
+// Natural gesture states
 let currentGesture = null;
 let gestureStartTime = 0;
 let rotationStartAngle = null;
 
 /**
- * Initialize BIG hand controls
+ * Initialize natural hand controls (no finger tracking)
  */
-function initBigHandControls() {
+function initNaturalHandControls() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error("Camera not supported");
         return;
@@ -38,31 +38,39 @@ function initBigHandControls() {
     
     // Load MediaPipe if needed
     if (window.Hands) {
-        setupBigGestures();
+        setupNaturalGestures();
     } else {
-        loadMediaPipeScripts().then(() => {
-            setupBigGestures();
-        });
+        // MediaPipe scripts should already be loaded from main page
+        console.log('Waiting for MediaPipe to load...');
+        setTimeout(() => {
+            if (window.Hands) {
+                setupNaturalGestures();
+            } else {
+                loadMediaPipeScripts().then(() => {
+                    setupNaturalGestures();
+                });
+            }
+        }, 1000);
     }
     
     // Add toggle button
-    addBigGestureToggle();
+    addGestureToggle();
 }
 
 /**
- * Set up MediaPipe for BIG gestures
+ * Set up MediaPipe for natural gestures
  */
-function setupBigGestures() {
+function setupNaturalGestures() {
     // Create video element
     videoElement = document.createElement('video');
-    videoElement.id = 'big-gesture-video';
+    videoElement.id = 'gesture-video';
     videoElement.style.cssText = `
         position: absolute;
         right: 20px;
         bottom: 20px;
         width: 320px;
         height: 240px;
-        border: 3px solid #ffcc00;
+        border: 3px solid #33ccff;
         border-radius: 10px;
         display: none;
         z-index: 150;
@@ -72,7 +80,7 @@ function setupBigGestures() {
     
     // Create canvas for visualization
     const canvas = document.createElement('canvas');
-    canvas.id = 'big-gesture-canvas';
+    canvas.id = 'gesture-canvas';
     canvas.width = 320;
     canvas.height = 240;
     canvas.style.cssText = `
@@ -111,18 +119,18 @@ function setupBigGestures() {
     });
     
     // Handle results
-    hands.onResults(handleBigGestureResults);
+    hands.onResults(handleGestureResults);
 }
 
 /**
- * Add toggle button for BIG gestures
+ * Add toggle button for natural gestures
  */
-function addBigGestureToggle() {
+function addGestureToggle() {
     const button = document.createElement('button');
-    button.id = 'big-gesture-button';
+    button.id = 'gesture-button';
     button.className = 'button';
-    button.innerHTML = '🤌';  // Italian gesture emoji!
-    button.title = 'BIG Hand Controls';
+    button.innerHTML = '🤌';  // Hand gesture emoji
+    button.title = 'Natural Hand Controls';
     button.style.cssText = `
         position: absolute;
         left: 25px;
@@ -135,27 +143,27 @@ function addBigGestureToggle() {
         padding: 0;
     `;
     
-    button.addEventListener('click', toggleBigGestures);
+    button.addEventListener('click', toggleGestures);
     
     document.getElementById('button-container').appendChild(button);
     
     // Update controls display
-    updateBigControlsDisplay();
+    updateControlsDisplay();
 }
 
 /**
- * Toggle BIG gestures on/off
+ * Toggle natural gestures on/off
  */
-function toggleBigGestures() {
+function toggleGestures() {
     if (trackingStarted) {
-        bigGestureConfig.enabled = !bigGestureConfig.enabled;
+        gestureConfig.enabled = !gestureConfig.enabled;
         
         // Toggle visibility
-        videoElement.style.display = bigGestureConfig.enabled ? 'block' : 'none';
-        document.getElementById('big-gesture-canvas').style.display = 
-            bigGestureConfig.enabled ? 'block' : 'none';
+        videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
+        document.getElementById('gesture-canvas').style.display = 
+            gestureConfig.enabled ? 'block' : 'none';
             
-        updateBigControlsDisplay();
+        updateControlsDisplay();
         return;
     }
     
@@ -164,10 +172,10 @@ function toggleBigGestures() {
         camera.start()
             .then(() => {
                 trackingStarted = true;
-                bigGestureConfig.enabled = true;
+                gestureConfig.enabled = true;
                 videoElement.style.display = 'block';
-                document.getElementById('big-gesture-canvas').style.display = 'block';
-                updateBigControlsDisplay();
+                document.getElementById('gesture-canvas').style.display = 'block';
+                updateControlsDisplay();
             })
             .catch(error => {
                 console.error('Camera error:', error);
@@ -176,18 +184,18 @@ function toggleBigGestures() {
 }
 
 /**
- * Update controls display for BIG gestures
+ * Update controls display for natural gestures
  */
-function updateBigControlsDisplay() {
+function updateControlsDisplay() {
     const controlsElement = document.getElementById('controls');
     if (!controlsElement) return;
     
-    if (bigGestureConfig.enabled) {
+    if (gestureConfig.enabled) {
         controlsElement.innerHTML = `
-            BIG Hand Controls:<br>
+            Natural Hand Controls:<br>
             🫸 Swipe: Move left/right<br>
             🤌 Rotate hand: Rotate piece<br>
-            🫳 Two hands down: Drop piece<br>
+            🫳 Palm down: Drop piece<br>
             👋 Wave: Pause game
         `;
     } else {
@@ -202,9 +210,9 @@ function updateBigControlsDisplay() {
 }
 
 /**
- * Handle BIG gesture results
+ * Handle natural gesture results
  */
-function handleBigGestureResults(results) {
+function handleGestureResults(results) {
     if (!results.multiHandLandmarks || !results.multiHandLandmarks[0]) {
         currentGesture = null;
         rotationStartAngle = null;
@@ -221,7 +229,7 @@ function handleBigGestureResults(results) {
     detectDrop();
     
     // Visualize
-    drawBigGestures(landmarks);
+    drawGestures(landmarks);
 }
 
 /**
@@ -245,13 +253,13 @@ function updateGestureHistory(landmarks) {
 }
 
 /**
- * Detect BIG swipe gestures (left/right movement)
+ * Detect swipe gestures (left/right movement)
  */
 function detectSwipe() {
     if (gestureHistory.length < 5) return;
     
     const now = Date.now();
-    if (now - lastGestureTime < bigGestureConfig.cooldownTime) return;
+    if (now - lastGestureTime < gestureConfig.cooldownTime) return;
     
     const recent = gestureHistory.slice(-5);
     const start = recent[0];
@@ -261,9 +269,9 @@ function detectSwipe() {
     const deltaTime = end.time - start.time;
     const velocity = Math.abs(deltaX) / deltaTime * 1000;
     
-    // BIG swipe detection
-    if (Math.abs(deltaX) > bigGestureConfig.swipeThreshold && 
-        velocity > bigGestureConfig.swipeSpeed) {
+    // Natural swipe detection
+    if (Math.abs(deltaX) > gestureConfig.swipeThreshold && 
+        velocity > gestureConfig.swipeSpeed) {
         
         if (deltaX > 0) {
             // Swipe right = move piece right
@@ -302,7 +310,7 @@ function detectRotation(landmarks) {
     const deltaAngle = angle - rotationStartAngle;
     
     // Check for significant rotation
-    if (Math.abs(deltaAngle) > bigGestureConfig.rotateThreshold) {
+    if (Math.abs(deltaAngle) > gestureConfig.rotateThreshold) {
         if (window.rotatePiece) {
             window.rotatePiece();
             lastGestureTime = Date.now();
@@ -314,7 +322,7 @@ function detectRotation(landmarks) {
 }
 
 /**
- * Detect two-hands-down drop gesture
+ * Detect palm-down drop gesture
  */
 function detectDrop() {
     if (gestureHistory.length < 10) return;
@@ -332,7 +340,7 @@ function detectDrop() {
         } else if (currentGesture === 'drop') {
             const holdTime = Date.now() - gestureStartTime;
             
-            if (holdTime > bigGestureConfig.dropGestureTime) {
+            if (holdTime > gestureConfig.dropGestureTime) {
                 if (window.dropPiece) {
                     window.dropPiece();
                     lastGestureTime = Date.now();
@@ -351,18 +359,18 @@ function detectDrop() {
 }
 
 /**
- * Visualize BIG gestures
+ * Visualize natural gestures
  */
-function drawBigGestures(landmarks) {
-    const canvas = document.getElementById('big-gesture-canvas');
+function drawGestures(landmarks) {
+    const canvas = document.getElementById('gesture-canvas');
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw hand outline with THICK lines for BIG gestures
-    ctx.strokeStyle = '#ffcc00';
-    ctx.lineWidth = 4;
+    // Draw hand outline with clear lines for natural gestures
+    ctx.strokeStyle = '#33ccff';
+    ctx.lineWidth = 3;
     
     // Just draw palm connections for cleaner look
     const connections = [
@@ -399,17 +407,46 @@ function drawBigGestures(landmarks) {
  * Clear visualization
  */
 function clearVisualization() {
-    const canvas = document.getElementById('big-gesture-canvas');
+    const canvas = document.getElementById('gesture-canvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 }
 
+/**
+ * Load MediaPipe scripts dynamically
+ */
+function loadMediaPipeScripts() {
+    return new Promise((resolve) => {
+        const script1 = document.createElement('script');
+        script1.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
+        script1.crossOrigin = 'anonymous';
+
+        const script2 = document.createElement('script');
+        script2.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js';
+        script2.crossOrigin = 'anonymous';
+
+        const script3 = document.createElement('script');
+        script3.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
+        script3.crossOrigin = 'anonymous';
+
+        document.body.appendChild(script1);
+        document.body.appendChild(script2);
+        
+        script3.onload = () => {
+            console.log('MediaPipe scripts loaded');
+            resolve();
+        };
+        
+        document.body.appendChild(script3);
+    });
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
-    initBigHandControls();
+    initNaturalHandControls();
 });
 
 // Export for use
-window.initBigHandControls = initBigHandControls;
+window.initNaturalHandControls = initNaturalHandControls;
