@@ -1,4 +1,0 @@
-# Requirements for Hand-Controlled Tetris
-pygame
-opencv-python
-mediapipe

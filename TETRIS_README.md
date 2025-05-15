@@ -1,35 +1,55 @@
 # Visual Gesture Controlled Tetris
 
-A Tetris game controlled by hand gestures using MediaPipe and OpenCV.
+A Tetris game controlled by natural hand gestures using MediaPipe and OpenCV - no finger tracking required!
   
-## Tetris as a Starting Point 
+## Project Structure
 
-  - Learn the system
-  - Develop a development process 
-  - Build it off the figjam type board 
-  - Add it to the board later with rankings 
-  - Alan already built the game we can use to start
+### Main Files
+- `index.html` - Main game with natural gesture controls
+- `natural_hand_controls.js` - Natural hand gesture control system (no finger tracking)
+- `test_gestures.html` - Test page for debugging gestures
 
-## OG Tetris Repository & Files
+### Original Tetris Repository
+- `docs/VISION_UI_TETRIS/` - Alan's original hand-controlled Tetris
+- `docs/VISION_UI_TETRIS/README.md` - Original documentation
 
-[collidingScopes/tetris](./docs/VISION_UI_TETRIS)
-[README.md](./docs/VISION_UI_TETRIS/README.md)
+### Documentation
+- `.claude/GESTURE_UI.md` - Gesture interface design principles
+- `.claude/PRIME.md` - Project context and setup
 
-### Current Gestures
+## How It Works
 
-1. **Tilt hand left** → Move piece left
-2. **Tilt hand right** → Move piece right  
-3. **Both tilts together** → Rotate piece
-4. **No hand visible** → Fast drop
+This enhanced version uses natural hand gestures instead of finger tracking:
 
-### Gesture UI Updates 
+1. **🫸 Swipe left/right** → Move piece
+2. **🤌 Rotate hand** → Rotate piece (like turning a doorknob)  
+3. **🫳 Palm down** → Fast drop
+4. **👋 Wave** → Pause game
 
-These have been defined as context priming examples for the AI and can be found at the link below. When you hear "gesture" don't think iOS/OS gestures, think about an Italian person telling a story. We need big and natural for reliability and longevity.  
+## Setup
 
-[Gesture Interface Design](./.claude/GESTURE_UI.md)
+1. Start a local server:
+   ```bash
+   python -m http.server 8000
+   # or
+   npx http-server -p 8000
+   ```
 
-## Handy Tetris Updates 
+2. Open in browser: `http://localhost:8000`
+3. Click `index.html`
+4. Click "START GAME" - camera will activate automatically
+5. Allow camera access when prompted
+6. Use natural hand gestures to play!
 
-[big_tetris_controls.js](./big_tetris_controls.js)
+## Key Features
 
-**NOTE: YOU WERE INTERRUPTED IN THE MIDDLE OF READING THE ORIGINAL TETRIS REPO FILES AND CREATING NEW FILES.**
+- **No keyboard controls** - gesture-only gameplay
+- **No finger tracking** - uses natural hand positions
+- **Auto-starts camera** - seamless UX with fewer clicks
+- **Responsive design** - works on different screen sizes
+
+## Original Creator
+
+Base Tetris implementation by Alan (@collidingscopes)
+- GitHub: [collidingscopes/tetris](https://github.com/collidingscopes/tetris)
+- Play original: [https://collidingscopes.github.io/tetris](https://collidingscopes.github.io/tetris)

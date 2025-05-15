@@ -49,7 +49,7 @@ No finger counting or individual finger tracking - just natural hand movements!
 This is a starting point for exploring how gesture interfaces can work with AI agents (SFA - Single File Agents). Future ideas:
 - Gesture-controlled agent switching
 - Visual debugging through eye tracking
-- AR code review overlays
+- AR code review with live overlays
 - Body language as code input
 
 ## Setup
@@ -68,8 +68,8 @@ This is a starting point for exploring how gesture interfaces can work with AI a
 
 2. Open your browser to `http://localhost:8000`
 3. Click on `index.html`
-4. Allow camera access when prompted
-5. Click the 🤌 button to enable natural gestures
+4. Click "START GAME" - camera activates automatically
+5. Allow camera access when prompted
 6. Use clear hand movements (no finger tracking) to control the game
 
 ## Browser Requirements
@@ -82,7 +82,7 @@ This is a starting point for exploring how gesture interfaces can work with AI a
 
 To test gestures independently:
 1. Open `test_gestures.html`
-2. Click "Start BIG Gestures"
+2. Click "Start Natural Gestures"
 3. Watch the console for gesture detection
 
 ## Contact

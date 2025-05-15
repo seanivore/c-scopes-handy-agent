@@ -136,6 +136,11 @@ function setupNaturalGestures() {
  * Add toggle button for natural gestures
  */
 function addGestureToggle() {
+    // Check if button already exists
+    if (document.getElementById('gesture-button')) {
+        return;
+    }
+    
     const button = document.createElement('button');
     button.id = 'gesture-button';
     button.className = 'button';
@@ -151,11 +156,49 @@ function addGestureToggle() {
         width: 48px;
         height: 48px;
         padding: 0;
+        background: linear-gradient(145deg, #33ccff, #0099cc);
+        color: #fff;
+        border: 2px solid #0099cc;
+        transition: all 0.3s ease;
     `;
+    
+    // Add glow style
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes gesture-glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(51, 204, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(51, 204, 255, 0.8), 0 0 30px rgba(51, 204, 255, 0.5);
+            }
+        }
+        
+        #gesture-button {
+            animation: gesture-glow 2s ease-in-out infinite;
+        }
+        
+        #gesture-button:hover {
+            animation: none;
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(51, 204, 255, 0.8);
+        }
+        
+        #gesture-button.active {
+            background: linear-gradient(145deg, #00ff99, #33ccff);
+            border-color: #00ff99;
+            animation: none;
+            box-shadow: 0 0 15px rgba(0, 255, 153, 0.5);
+        }
+    `;
+    document.head.appendChild(style);
     
     button.addEventListener('click', toggleGestures);
     
-    document.getElementById('button-container').appendChild(button);
+    const buttonContainer = document.getElementById('button-container');
+    if (buttonContainer) {
+        buttonContainer.appendChild(button);
+    }
     
     // Update controls display
     updateControlsDisplay();
@@ -167,6 +210,8 @@ function addGestureToggle() {
 function toggleGestures() {
     console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
     
+    const button = document.getElementById('gesture-button');
+    
     if (trackingStarted) {
         gestureConfig.enabled = !gestureConfig.enabled;
         
@@ -174,6 +219,15 @@ function toggleGestures() {
         videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
         document.getElementById('gesture-canvas').style.display = 
             gestureConfig.enabled ? 'block' : 'none';
+            
+        // Update button state
+        if (button) {
+            if (gestureConfig.enabled) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        }
             
         updateControlsDisplay();
         return;
@@ -209,6 +263,12 @@ function toggleGestures() {
                 gestureConfig.enabled = true;
                 videoElement.style.display = 'block';
                 document.getElementById('gesture-canvas').style.display = 'block';
+                
+                // Update button state
+                if (button) {
+                    button.classList.add('active');
+                }
+                
                 updateControlsDisplay();
                 
                 // Remove prompt

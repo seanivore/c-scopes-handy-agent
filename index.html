@@ -6,7 +6,33 @@
     <title>Tetris with Natural Gestures</title>
     <link rel="stylesheet" href="docs/VISION_UI_TETRIS/styles.css">
     <style>
-        /* Additional styling for natural gestures - matching Alan's clean aesthetic */
+        /* Fix for Chrome height issue */
+        html, body {
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+            min-height: -webkit-fill-available;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow: hidden;
+        }
+        
+        /* Hide the original hand controls button */
+        #hand-controls-button {
+            display: none !important;
+        }
+        
+        /* Natural gesture video styling */
         #gesture-video {
             border: 3px solid #33ccff !important;
             box-shadow: 0 0 20px rgba(51, 204, 255, 0.5);
@@ -14,37 +40,6 @@
         
         #gesture-canvas {
             display: block !important;
-        }
-
-        #gesture-button {
-            background: linear-gradient(145deg, #33ccff, #0099cc);
-            color: #fff;
-            border: 2px solid #0099cc;
-            transition: all 0.3s ease;
-            animation: glow 2s ease-in-out infinite;
-        }
-        
-        @keyframes glow {
-            0%, 100% {
-                box-shadow: 0 0 5px rgba(51, 204, 255, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(51, 204, 255, 0.8), 0 0 30px rgba(51, 204, 255, 0.5);
-            }
-        }
-
-        #gesture-button:hover {
-            background: linear-gradient(145deg, #0099cc, #33ccff);
-            transform: scale(1.05);
-            animation: none;
-            box-shadow: 0 0 25px rgba(51, 204, 255, 0.8);
-        }
-
-        #gesture-button.active {
-            background: linear-gradient(145deg, #00ff99, #33ccff);
-            border-color: #00ff99;
-            animation: none;
-            box-shadow: 0 0 15px rgba(0, 255, 153, 0.5);
         }
 
         /* Notification styling for gesture feedback */
@@ -75,11 +70,19 @@
             color: #33ccff;
             margin-bottom: 10px;
         }
+        
+        /* Fix for overlays on smaller screens */
+        @media (max-height: 700px) {
+            .frosted-glass-overlay {
+                transform: translate(-50%, -50%) scale(0.9);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
-
         <div id="button-container">
           <button id="pause-button" class="button">⏯️</button>
           <button id="mute-button" class="button">🔊</button>
@@ -98,6 +101,7 @@
             🫳 Palm down: Drop piece<br>
             👋 Wave: Pause game
         </div>
+        
         <div id="start-screen" class="frosted-glass-overlay">
           <h1>TETRIS WITH NATURAL GESTURES</h1>
           
@@ -143,6 +147,7 @@
           </div>
           <button id="start-button" class="button">START GAME</button>
         </div>
+        
         <div id="next-piece-container">
             <div>NEXT PIECE</div>
             <canvas id="next-piece-canvas"></canvas>
@@ -201,112 +206,113 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
-    <!-- Original Tetris scripts (minus keyboard controls) -->
+    <!-- Original Tetris scripts -->
     <script src="docs/VISION_UI_TETRIS/deviceUtils.js"></script>
     <script src="docs/VISION_UI_TETRIS/uiAdapter.js"></script>
     <script src="docs/VISION_UI_TETRIS/touchControls.js"></script>
     <script src="docs/VISION_UI_TETRIS/sounds.js"></script>
     
-    <!-- Load ONLY natural hand controls -->
-    <script src="natural_hand_controls.js"></script>
-    
     <!-- Main game logic -->
     <script src="docs/VISION_UI_TETRIS/main.js"></script>
     
+    <!-- Load ONLY natural hand controls -->
+    <script src="natural_hand_controls.js"></script>
+    
     <script>
-        // Override the original hand controls completely
-        window.initHandControls = initNaturalHandControls;
+        // Set up natural gesture controls to auto-start with the game
+        let naturalControlsInitialized = false;
         
-        // Wait for all scripts to load
-        window.addEventListener('load', () => {
-            console.log('Overriding game functions for gesture integration...');
+        // Override the initHandControls function
+        window.initHandControls = function() {
+            console.log('Natural hand controls replacing original');
+            if (!naturalControlsInitialized) {
+                naturalControlsInitialized = true;
+                initNaturalHandControls();
+            }
+        };
+        
+        // Wait for DOM and scripts to load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, setting up natural gesture integration');
             
-            // Expose tracking state globally
-            window.isGestureTrackingStarted = () => {
-                return window.gestureTrackingState && window.gestureTrackingState.started;
-            };
-            
-            // Make start button also activate gestures
-            if (window.startGame) {
+            // Override game functions after a small delay to ensure they exist
+            setTimeout(() => {
+                // Override startGame to automatically start gestures
                 const originalStartGame = window.startGame;
                 window.startGame = function() {
-                    console.log('Starting game with gestures...');
+                    console.log('Starting game with auto-gestures');
                     originalStartGame();
                     
-                    // Also start gesture controls
+                    // Automatically activate gestures after game starts
                     setTimeout(() => {
                         const gestureButton = document.getElementById('gesture-button');
-                        if (gestureButton && !window.isGestureTrackingStarted()) {
-                            console.log('Auto-clicking gesture button...');
+                        if (gestureButton && window.gestureTrackingState && !window.gestureTrackingState.started) {
+                            console.log('Auto-activating gestures');
                             gestureButton.click();
                         }
-                    }, 500);
+                    }, 100);
                 };
-            }
-            
-            // Make play button also activate gestures if needed
-            if (window.playGame) {
+                
+                // Override playGame for resume functionality
                 const originalPlayGame = window.playGame;
                 window.playGame = function() {
-                    console.log('Playing game...');
+                    console.log('Resuming game');
                     originalPlayGame();
                     
-                    // Start gesture controls if not started
-                    if (!window.isGestureTrackingStarted()) {
+                    // Start gestures if not already started
+                    if (window.gestureTrackingState && !window.gestureTrackingState.started) {
                         const gestureButton = document.getElementById('gesture-button');
                         if (gestureButton) {
-                            console.log('Starting gestures from play button...');
                             gestureButton.click();
                         }
                     }
                 };
-            }
-            
-            // Update restart functions
-            if (window.restartGame1) {
+                
+                // Override restart functions
                 const originalRestartGame1 = window.restartGame1;
                 window.restartGame1 = function() {
-                    console.log('Restarting game 1...');
                     originalRestartGame1();
                     
-                    if (!window.isGestureTrackingStarted()) {
-                        const gestureButton = document.getElementById('gesture-button');
-                        if (gestureButton) {
-                            gestureButton.click();
+                    setTimeout(() => {
+                        if (window.gestureTrackingState && !window.gestureTrackingState.started) {
+                            const gestureButton = document.getElementById('gesture-button');
+                            if (gestureButton) {
+                                gestureButton.click();
+                            }
                         }
-                    }
+                    }, 100);
                 };
-            }
-            
-            if (window.restartGame2) {
+                
                 const originalRestartGame2 = window.restartGame2;
                 window.restartGame2 = function() {
-                    console.log('Restarting game 2...');
                     originalRestartGame2();
                     
-                    if (!window.isGestureTrackingStarted()) {
-                        const gestureButton = document.getElementById('gesture-button');
-                        if (gestureButton) {
-                            gestureButton.click();
+                    setTimeout(() => {
+                        if (window.gestureTrackingState && !window.gestureTrackingState.started) {
+                            const gestureButton = document.getElementById('gesture-button');
+                            if (gestureButton) {
+                                gestureButton.click();
+                            }
                         }
-                    }
+                    }, 100);
                 };
-            }
-            
-            // Disable keyboard controls after a delay
-            setTimeout(() => {
-                console.log('Disabling keyboard controls...');
-                window.removeEventListener('keydown', handleKeyPress);
                 
+                // Disable keyboard controls
+                const handleKeyPress = window.handleKeyPress;
+                if (handleKeyPress) {
+                    window.removeEventListener('keydown', handleKeyPress);
+                    console.log('Keyboard controls disabled');
+                }
+                
+                // Add keyboard warning
                 window.addEventListener('keydown', (e) => {
-                    if (e.key !== 'F5' && e.key !== 'F12') {
+                    if (!['F5', 'F12', 'F11'].includes(e.key)) {
                         e.preventDefault();
-                        console.log('This version uses hand gestures only!');
+                        console.log('This game uses natural hand gestures only - no keyboard controls!');
                     }
                 });
-            }, 2000);
+            }, 500);
         });
     </script>
-
 </body>
 </html>
