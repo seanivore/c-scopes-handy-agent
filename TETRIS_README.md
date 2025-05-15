@@ -1,4 +1,6 @@
 # Visual Gesture Controlled Tetris
+
+A Tetris game controlled by hand gestures using MediaPipe and OpenCV.
   
 ## Tetris as a Starting Point 
 
@@ -8,73 +10,26 @@
   - Add it to the board later with rankings 
   - Alan already built the game we can use to start
 
+## OG Tetris Repository & Files
 
+[collidingScopes/tetris](./docs/VISION_UI_TETRIS)
+[README.md](./docs/VISION_UI_TETRIS/README.md)
 
-
-
-
-
-your gestures are too small we need to use the big ones i planned already -- swipes, and rotates. when you think gesture stop thinking hands. think italians speaking 
-
-And we need to use his project for sure not someone elses
-
-__
-
-SHOUD have mentioned this is last message in the thread i got bumped and am editing m y prior message to get through to you
-
-
-
-
-A Tetris game controlled by hand gestures using MediaPipe and OpenCV.
-
-## Current Gestures
+### Current Gestures
 
 1. **Tilt hand left** → Move piece left
 2. **Tilt hand right** → Move piece right  
 3. **Both tilts together** → Rotate piece
 4. **No hand visible** → Fast drop
 
-## Setup
+### Gesture UI Updates 
 
-```bash
-pip install -r tetris_requirements.txt
-python tetris_mediapipe.py
-```
+These have been defined as context priming examples for the AI and can be found at the link below. When you hear "gesture" don't think iOS/OS gestures, think about an Italian person telling a story. We need big and natural for reliability and longevity.  
 
-## Game Features
+[Gesture Interface Design](./.claude/GESTURE_UI.md)
 
-- Classic Tetris gameplay
-- Hand gesture control via webcam
-- Score tracking
-- Increasing difficulty over time
-- Next piece preview
+## Handy Tetris Updates 
 
-## To Improve
+[big_tetris_controls.js](./big_tetris_controls.js)
 
-### Better Gestures (Our Big Movement System)
-- [ ] BACKHAND → Move right
-- [ ] FRONTHAND → Move left
-- [ ] FIST ROTATION → Rotate piece
-- [ ] PUSH AWAY → Pause game
-- [ ] CHEF KISS → Save high score
-
-### Game Enhancements
-- [ ] Better visual feedback for gestures
-- [ ] Sound effects
-- [ ] Pause functionality
-- [ ] High score tracking
-- [ ] Gesture calibration
-
-### Agent Integration
-- [ ] Voice commands for game control
-- [ ] AI suggestions for best moves
-- [ ] Automated gameplay recording
-- [ ] Performance analytics
-
-## Notes
-
-Based on tutorials by:
-- Tech With Tim (Tetris logic)
-- Murtaza's Workshop (Hand tracking)
-
-This is our starting point for the larger gesture-controlled board system!
+**NOTE: YOU WERE INTERRUPTED IN THE MIDDLE OF READING THE ORIGINAL TETRIS REPO FILES AND CREATING NEW FILES.**
