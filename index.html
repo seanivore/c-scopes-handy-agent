@@ -21,17 +21,30 @@
             color: #fff;
             border: 2px solid #0099cc;
             transition: all 0.3s ease;
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(51, 204, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(51, 204, 255, 0.8), 0 0 30px rgba(51, 204, 255, 0.5);
+            }
         }
 
         #gesture-button:hover {
             background: linear-gradient(145deg, #0099cc, #33ccff);
             transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(51, 204, 255, 0.5);
+            animation: none;
+            box-shadow: 0 0 25px rgba(51, 204, 255, 0.8);
         }
 
         #gesture-button.active {
             background: linear-gradient(145deg, #00ff99, #33ccff);
             border-color: #00ff99;
+            animation: none;
+            box-shadow: 0 0 15px rgba(0, 255, 153, 0.5);
         }
 
         /* Notification styling for gesture feedback */
@@ -46,6 +59,21 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+        
+        /* Camera prompt styling */
+        .camera-prompt {
+            background: rgba(51, 204, 255, 0.2);
+            border: 2px solid #33ccff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .camera-prompt h3 {
+            color: #33ccff;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -64,29 +92,25 @@
         </div>
 
         <div id="controls">
-            Controls:<br>
-            ← → : Move left/right<br>
-            ↑ : Rotate<br>
-            ↓ : Move down<br>
-            Space : Drop
+            Natural Hand Controls:<br>
+            🫸 Swipe: Move left/right<br>
+            🤌 Rotate hand: Rotate piece<br>
+            🫳 Palm down: Drop piece<br>
+            👋 Wave: Pause game
         </div>
         <div id="start-screen" class="frosted-glass-overlay">
           <h1>TETRIS WITH NATURAL GESTURES</h1>
           
-          <!-- Desktop controls -->
-          <ul class="controls-list">
-              <li><strong>← / → Arrows:</strong> Move piece left/right</li>
-              <li><strong>↑ Arrow:</strong> Rotate piece</li>
-              <li><strong>↓ Arrow:</strong> Move down faster</li>
-              <li><strong>Spacebar:</strong> Hard drop</li>
-              <li><strong>🤌 Natural Gestures:</strong> Hand controls (no finger tracking!)</li>
-          </ul>
+          <div class="camera-prompt">
+              <h3>🎮 This version uses hand gestures only!</h3>
+              <p>No keyboard or touch controls - just natural hand movements</p>
+          </div>
           
           <!-- Natural Gesture controls explanation -->
           <div class="gesture-info">
-              <h3>Natural Gesture Controls:</h3>
+              <h3>How to Play:</h3>
               <ul class="controls-list">
-                  <li><strong>🫸 Swipe:</strong> Move left/right (whole hand movement)</li>
+                  <li><strong>🫸 Swipe:</strong> Move piece left/right (whole hand movement)</li>
                   <li><strong>🤌 Rotate hand:</strong> Turn piece like opening a door</li>
                   <li><strong>🫳 Palm down:</strong> Drop piece fast</li>
                   <li><strong>👋 Wave:</strong> Pause the game</li>
@@ -94,14 +118,14 @@
               <p style="margin-top: 10px; font-style: italic;">No finger counting required - just natural hand positions!</p>
           </div>
           
-          <!-- Mobile controls -->
-          <div class="mobile-controls">
-              <h3>Mobile Controls:</h3>
-              <ul class="controls-list">
-                  <li><strong>Tap:</strong> Rotate piece</li>
-                  <li><strong>Swipe Left/Right:</strong> Move piece</li>
-                  <li><strong>Swipe Down:</strong> Hard drop</li>
-              </ul>
+          <!-- Camera Setup Info -->
+          <div class="camera-prompt">
+              <h3>To Start Playing:</h3>
+              <p>1. Click START GAME below</p>
+              <p>2. Click the glowing 🤌 button (top left) to enable camera</p>
+              <p>3. Allow camera access when browser prompts</p>
+              <p>4. Use hand gestures to control the game!</p>
+              <p style="margin-top: 10px; color: #33ccff;"><strong>Note:</strong> Camera permission is required - this game is gesture-only!</p>
           </div>
           
           <p>Clear lines to score points and level up!</p>
@@ -180,26 +204,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
-    <!-- Original Tetris scripts -->
+    <!-- Original Tetris scripts (minus keyboard controls) -->
     <script src="docs/VISION_UI_TETRIS/deviceUtils.js"></script>
     <script src="docs/VISION_UI_TETRIS/uiAdapter.js"></script>
     <script src="docs/VISION_UI_TETRIS/touchControls.js"></script>
     <script src="docs/VISION_UI_TETRIS/sounds.js"></script>
     
-    <!-- Choose control system based on preference -->
-    <!-- Load the appropriate control system -->
-    <script src="docs/VISION_UI_TETRIS/handControls.js"></script>
+    <!-- Load ONLY natural hand controls -->
     <script src="natural_hand_controls.js"></script>
     
     <!-- Main game logic -->
     <script src="docs/VISION_UI_TETRIS/main.js"></script>
     
     <script>
-        // Override the handControls initialization to use natural gestures
-        if (typeof initNaturalHandControls === 'function') {
-            // Replace the original hand controls with natural gestures
-            window.initHandControls = initNaturalHandControls;
-        }
+        // Override the original hand controls completely
+        window.initHandControls = initNaturalHandControls;
+        
+        // Disable keyboard controls by removing the event listener
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for main.js to load
+            setTimeout(() => {
+                // Remove the keyboard event listener
+                window.removeEventListener('keydown', handleKeyPress);
+                
+                // Add a message when someone tries to use keyboard
+                window.addEventListener('keydown', (e) => {
+                    if (e.key !== 'F5' && e.key !== 'F12') { // Allow refresh and dev tools
+                        e.preventDefault();
+                        console.log('This version uses hand gestures only! Click the 🤌 button to enable camera.');
+                    }
+                });
+            }, 1000);
+        });
     </script>
 
 </body>

@@ -31,8 +31,11 @@ let rotationStartAngle = null;
  * Initialize natural hand controls (no finger tracking)
  */
 function initNaturalHandControls() {
+    console.log('Initializing natural hand controls...');
+    
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error("Camera not supported");
+        alert("Camera access is required for this game. Please ensure your browser supports camera access.");
         return;
     }
     
@@ -76,6 +79,8 @@ function setupNaturalGestures() {
         z-index: 150;
         transform: scaleX(-1);
     `;
+    videoElement.autoplay = true;
+    videoElement.playsInline = true;  // Important for mobile
     document.body.appendChild(videoElement);
     
     // Create canvas for visualization
@@ -155,6 +160,8 @@ function addGestureToggle() {
  * Toggle natural gestures on/off
  */
 function toggleGestures() {
+    console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
+    
     if (trackingStarted) {
         gestureConfig.enabled = !gestureConfig.enabled;
         
@@ -169,17 +176,46 @@ function toggleGestures() {
     
     // Start tracking
     if (camera) {
+        console.log('Starting camera...');
+        
+        // Show prompt for user
+        const promptDiv = document.createElement('div');
+        promptDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #33ccff;
+            z-index: 1000;
+            text-align: center;
+        `;
+        promptDiv.innerHTML = '<h3>Camera Access Required</h3><p>Please allow camera access when prompted by your browser.</p>';
+        document.body.appendChild(promptDiv);
+        
         camera.start()
             .then(() => {
+                console.log('Camera started successfully');
                 trackingStarted = true;
                 gestureConfig.enabled = true;
                 videoElement.style.display = 'block';
                 document.getElementById('gesture-canvas').style.display = 'block';
                 updateControlsDisplay();
+                
+                // Remove prompt
+                if (promptDiv.parentNode) {
+                    promptDiv.parentNode.removeChild(promptDiv);
+                }
             })
             .catch(error => {
                 console.error('Camera error:', error);
+                promptDiv.innerHTML = `<h3>Camera Access Denied</h3><p>${error.message}</p><button onclick="this.parentElement.remove()">OK</button>`;
             });
+    } else {
+        console.error('Camera not initialized');
     }
 }
 
