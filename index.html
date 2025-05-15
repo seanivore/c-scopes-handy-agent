@@ -210,12 +210,13 @@
     </div>
 
     <!-- Load natural hand controls FIRST -->
-    <script src="natural_hand_controls.js"></script>
-
     <!-- MediaPipe libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- Load natural hand controls AFTER MediaPipe libraries -->
+    <script src="natural_hand_controls.js"></script>
 
     <!-- Core game scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -235,13 +236,25 @@
         window.addEventListener('load', () => {
             console.log('Page loaded, setting up natural gestures');
 
-            // Override the initHandControls function
+            // Override the initHandControls function with better debugging
             window.initHandControls = function () {
                 console.log('Overriding hand controls with natural gestures');
+                // Log available functions to debug
+                console.log('Natural hand controls function available?', 
+                    typeof window.initNaturalHandControls === 'function');
+                console.log('Current window functions:', 
+                    Object.keys(window).filter(key => typeof window[key] === 'function' && 
+                        key.toLowerCase().includes('hand')));
+                
                 if (typeof window.initNaturalHandControls === 'function') {
-                    window.initNaturalHandControls();
+                    try {
+                        window.initNaturalHandControls();
+                        console.log('Natural hand controls initialized successfully from override');
+                    } catch (error) {
+                        console.error('Error initializing natural hand controls from override:', error);
+                    }
                 } else {
-                    console.error('Natural hand controls not loaded');
+                    console.error('Natural hand controls not loaded - script might not be fully initialized');
                 }
             };
 

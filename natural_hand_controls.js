@@ -19,7 +19,7 @@ let gestureHistory = [];
 let lastGestureTime = 0;
 let videoElement = null;
 let hands = null;
-let camera = null;
+let handCamera = null;
 let trackingStarted = false;
 
 // Natural gesture states
@@ -44,21 +44,42 @@ function initNaturalHandControls() {
         return;
     }
 
-    // Load MediaPipe if needed
-    if (window.Hands) {
+    // More robust MediaPipe loading
+    console.log('Checking MediaPipe availability...');
+    console.log('Camera available?', typeof Camera !== 'undefined');
+    console.log('Hands available?', typeof Hands !== 'undefined');
+    
+    if (typeof Hands !== 'undefined' && typeof Camera !== 'undefined') {
+        console.log('MediaPipe libraries already loaded, setting up gestures');
         setupNaturalGestures();
     } else {
-        // MediaPipe scripts should already be loaded from main page
-        console.log('Waiting for MediaPipe to load...');
-        setTimeout(() => {
-            if (window.Hands) {
+        console.log('MediaPipe not fully loaded, waiting...');
+        
+        // Use a more robust polling approach
+        let attempts = 0;
+        const checkMediaPipe = () => {
+            attempts++;
+            console.log(`MediaPipe load attempt ${attempts}/10`);
+            console.log('Camera available?', typeof Camera !== 'undefined');
+            console.log('Hands available?', typeof Hands !== 'undefined');
+            
+            if (typeof Hands !== 'undefined' && typeof Camera !== 'undefined') {
+                console.log('MediaPipe loaded after waiting, setting up gestures');
                 setupNaturalGestures();
+            } else if (attempts < 10) {
+                setTimeout(checkMediaPipe, 500); // Check again in 500ms
             } else {
+                console.error('MediaPipe failed to load after multiple attempts');
                 loadMediaPipeScripts().then(() => {
+                    console.log('Manually loaded MediaPipe, setting up gestures');
                     setupNaturalGestures();
+                }).catch(error => {
+                    console.error('Failed to manually load MediaPipe:', error);
                 });
             }
-        }, 1000);
+        };
+        
+        setTimeout(checkMediaPipe, 100);
     }
 
     // Add toggle button
@@ -103,12 +124,21 @@ function setupNaturalGestures() {
     `;
     document.body.appendChild(canvas);
 
-    // Initialize MediaPipe
-    hands = new Hands({
-        locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }
-    });
+    // Initialize MediaPipe with error handling
+    console.log('Initializing MediaPipe Hands...');
+    try {
+        hands = new Hands({
+            locateFile: (file) => {
+                console.log(`Loading MediaPipe file: ${file}`);
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+        console.log('MediaPipe Hands initialized successfully');
+    } catch (error) {
+        console.error('Error initializing MediaPipe Hands:', error);
+        alert('Error initializing hand tracking. Please try refreshing the page.');
+        return;
+    }
 
     hands.setOptions({
         maxNumHands: 1,
@@ -118,15 +148,22 @@ function setupNaturalGestures() {
     });
 
     // Set up camera
-    camera = new Camera(videoElement, {
-        onFrame: async () => {
-            if (bigGestureConfig.enabled) {
-                await hands.send({ image: videoElement });
-            }
-        },
-        width: 320,
-        height: 240
-    });
+    // Add debug logging
+    console.log('Setting up hand camera with MediaPipe');
+    try {
+        handCamera = new Camera(videoElement, {
+            onFrame: async () => {
+                if (gestureConfig.enabled) {
+                    await hands.send({ image: videoElement });
+                }
+            },
+            width: 320,
+            height: 240
+        });
+        console.log('Hand camera initialized successfully');
+    } catch (error) {
+        console.error('Error initializing hand camera:', error);
+    }
 
     // Handle results
     hands.onResults(handleGestureResults);
@@ -234,7 +271,7 @@ function toggleGestures() {
     }
 
     // Start tracking
-    if (camera) {
+    if (handCamera) {
         console.log('Starting camera...');
 
         // Show prompt for user
@@ -255,8 +292,10 @@ function toggleGestures() {
         promptDiv.innerHTML = '<h3>Camera Access Required</h3><p>Please allow camera access when prompted by your browser.</p>';
         document.body.appendChild(promptDiv);
 
-        camera.start()
+        console.log('Attempting to start hand camera...');
+        handCamera.start()
             .then(() => {
+                console.log('Hand camera started successfully');
                 console.log('Camera started successfully');
                 trackingStarted = true;
                 window.gestureTrackingState.started = true;  // Update global state
@@ -277,6 +316,7 @@ function toggleGestures() {
                 }
             })
             .catch(error => {
+                console.error('Detailed camera start error:', error);
                 console.error('Camera error:', error);
                 promptDiv.innerHTML = `<h3>Camera Access Denied</h3><p>${error.message}</p><button onclick="this.parentElement.remove()">OK</button>`;
             });
@@ -545,9 +585,15 @@ function loadMediaPipeScripts() {
     });
 }
 
-// Initialize on load
+// Initialize on load with error handling
 document.addEventListener('DOMContentLoaded', () => {
-    initNaturalHandControls();
+    console.log('DOM loaded, initializing natural hand controls');
+    try {
+        initNaturalHandControls();
+        console.log('Natural hand controls initialized successfully');
+    } catch (error) {
+        console.error('Error initializing natural hand controls:', error);
+    }
 });
 
 // Export for use
