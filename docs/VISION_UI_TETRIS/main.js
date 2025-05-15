@@ -1,10 +1,3 @@
-/*
-To do:
-Some animations
-Background music?
-Play sound upon level up / locking the block
-Increase sensitivity of multi-movement drags to the left / right
-*/
 
 // Game constants
 const BOARD_WIDTH = 10;

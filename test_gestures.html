@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +10,14 @@
             margin: 20px;
             font-family: Arial, sans-serif;
         }
-        
+
         .status {
             padding: 10px;
             margin: 10px 0;
             border: 2px solid #ccc;
             border-radius: 5px;
         }
-        
+
         #test-output {
             background-color: #f0f0f0;
             padding: 10px;
@@ -25,7 +26,7 @@
             white-space: pre-wrap;
             font-family: monospace;
         }
-        
+
         button {
             padding: 10px 20px;
             margin: 5px;
@@ -34,39 +35,40 @@
         }
     </style>
 </head>
+
 <body>
     <h1>Natural Gesture System Test (No Finger Tracking)</h1>
-    
+
     <div class="status">
         <h3>Status</h3>
         <p>MediaPipe Loaded: <span id="mediapipe-status">Checking...</span></p>
         <p>Camera Ready: <span id="camera-status">Not started</span></p>
         <p>Gesture Tracking: <span id="tracking-status">Disabled</span></p>
     </div>
-    
+
     <div>
         <button onclick="startNaturalGestures()">Start Natural Gestures</button>
         <button onclick="testGestureFunctions()">Test Functions</button>
     </div>
-    
+
     <div id="test-output">Test output will appear here...</div>
-    
+
     <div id="gesture-container" style="position: relative; width: 400px; height: 300px; border: 2px solid #333; margin: 20px 0;">
         <!-- Video and canvas will be placed here -->
     </div>
-    
+
     <!-- Load MediaPipe and our script -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    
+
     <script>
         let output = document.getElementById('test-output');
-        
+
         function log(message) {
             output.textContent += message + '\n';
             console.log(message);
         }
-        
+
         // Check MediaPipe status
         function checkMediaPipe() {
             if (window.Hands) {
@@ -77,20 +79,20 @@
                 log('MediaPipe Hands not available');
             }
         }
-        
+
         // Mock the game functions
-        window.movePiece = function(dx, dy) {
+        window.movePiece = function (dx, dy) {
             log(`movePiece called: dx=${dx}, dy=${dy}`);
         };
-        
-        window.rotatePiece = function() {
+
+        window.rotatePiece = function () {
             log('rotatePiece called');
         };
-        
-        window.dropPiece = function() {
+
+        window.dropPiece = function () {
             log('dropPiece called');
         };
-        
+
         // Start natural gestures
         function startNaturalGestures() {
             log('Starting natural gestures (no finger tracking)...');
@@ -101,7 +103,7 @@
                 log('Natural gesture system not loaded');
             }
         }
-        
+
         // Test gesture functions directly
         function testGestureFunctions() {
             log('Testing gesture functions:');
@@ -110,13 +112,14 @@
             rotatePiece();
             dropPiece();
         }
-        
+
         // Check status on load
         window.addEventListener('load', () => {
             setTimeout(checkMediaPipe, 1000);
         });
     </script>
-    
+
     <script src="natural_hand_controls.js"></script>
 </body>
+
 </html>
