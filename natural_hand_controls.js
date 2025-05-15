@@ -1,5 +1,5 @@
 /**
- * naturalHandControls.js
+ * natural_hand_controls.js
  * Natural hand gestures for Tetris - no finger tracking!
  */
 
@@ -37,13 +37,13 @@ window.gestureTrackingState = {
  */
 function initNaturalHandControls() {
     console.log('Initializing natural hand controls...');
-    
+
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error("Camera not supported");
         alert("Camera access is required for this game. Please ensure your browser supports camera access.");
         return;
     }
-    
+
     // Load MediaPipe if needed
     if (window.Hands) {
         setupNaturalGestures();
@@ -60,7 +60,7 @@ function initNaturalHandControls() {
             }
         }, 1000);
     }
-    
+
     // Add toggle button
     addGestureToggle();
 }
@@ -87,7 +87,7 @@ function setupNaturalGestures() {
     videoElement.autoplay = true;
     videoElement.playsInline = true;  // Important for mobile
     document.body.appendChild(videoElement);
-    
+
     // Create canvas for visualization
     const canvas = document.createElement('canvas');
     canvas.id = 'gesture-canvas';
@@ -102,21 +102,21 @@ function setupNaturalGestures() {
         transform: scaleX(-1);
     `;
     document.body.appendChild(canvas);
-    
+
     // Initialize MediaPipe
     hands = new Hands({
         locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
         }
     });
-    
+
     hands.setOptions({
         maxNumHands: 1,
         modelComplexity: 1,
         minDetectionConfidence: 0.7,
         minTrackingConfidence: 0.5
     });
-    
+
     // Set up camera
     camera = new Camera(videoElement, {
         onFrame: async () => {
@@ -127,7 +127,7 @@ function setupNaturalGestures() {
         width: 320,
         height: 240
     });
-    
+
     // Handle results
     hands.onResults(handleGestureResults);
 }
@@ -140,7 +140,7 @@ function addGestureToggle() {
     if (document.getElementById('gesture-button')) {
         return;
     }
-    
+
     const button = document.createElement('button');
     button.id = 'gesture-button';
     button.className = 'button';
@@ -161,7 +161,7 @@ function addGestureToggle() {
         border: 2px solid #0099cc;
         transition: all 0.3s ease;
     `;
-    
+
     // Add glow style
     const style = document.createElement('style');
     style.textContent = `
@@ -192,14 +192,14 @@ function addGestureToggle() {
         }
     `;
     document.head.appendChild(style);
-    
+
     button.addEventListener('click', toggleGestures);
-    
+
     const buttonContainer = document.getElementById('button-container');
     if (buttonContainer) {
         buttonContainer.appendChild(button);
     }
-    
+
     // Update controls display
     updateControlsDisplay();
 }
@@ -209,17 +209,17 @@ function addGestureToggle() {
  */
 function toggleGestures() {
     console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
-    
+
     const button = document.getElementById('gesture-button');
-    
+
     if (trackingStarted) {
         gestureConfig.enabled = !gestureConfig.enabled;
-        
+
         // Toggle visibility
         videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
-        document.getElementById('gesture-canvas').style.display = 
+        document.getElementById('gesture-canvas').style.display =
             gestureConfig.enabled ? 'block' : 'none';
-            
+
         // Update button state
         if (button) {
             if (gestureConfig.enabled) {
@@ -228,15 +228,15 @@ function toggleGestures() {
                 button.classList.remove('active');
             }
         }
-            
+
         updateControlsDisplay();
         return;
     }
-    
+
     // Start tracking
     if (camera) {
         console.log('Starting camera...');
-        
+
         // Show prompt for user
         const promptDiv = document.createElement('div');
         promptDiv.style.cssText = `
@@ -254,7 +254,7 @@ function toggleGestures() {
         `;
         promptDiv.innerHTML = '<h3>Camera Access Required</h3><p>Please allow camera access when prompted by your browser.</p>';
         document.body.appendChild(promptDiv);
-        
+
         camera.start()
             .then(() => {
                 console.log('Camera started successfully');
@@ -263,14 +263,14 @@ function toggleGestures() {
                 gestureConfig.enabled = true;
                 videoElement.style.display = 'block';
                 document.getElementById('gesture-canvas').style.display = 'block';
-                
+
                 // Update button state
                 if (button) {
                     button.classList.add('active');
                 }
-                
+
                 updateControlsDisplay();
-                
+
                 // Remove prompt
                 if (promptDiv.parentNode) {
                     promptDiv.parentNode.removeChild(promptDiv);
@@ -291,7 +291,7 @@ function toggleGestures() {
 function updateControlsDisplay() {
     const controlsElement = document.getElementById('controls');
     if (!controlsElement) return;
-    
+
     if (gestureConfig.enabled) {
         controlsElement.innerHTML = `
             Natural Hand Controls:<br>
@@ -321,15 +321,15 @@ function handleGestureResults(results) {
         clearVisualization();
         return;
     }
-    
+
     const landmarks = results.multiHandLandmarks[0];
     updateGestureHistory(landmarks);
-    
+
     // Detect and handle BIG gestures
     detectSwipe();
     detectRotation(landmarks);
     detectDrop();
-    
+
     // Visualize
     drawGestures(landmarks);
 }
@@ -340,14 +340,14 @@ function handleGestureResults(results) {
 function updateGestureHistory(landmarks) {
     const now = Date.now();
     const palmBase = landmarks[0];
-    
+
     gestureHistory.push({
         time: now,
         x: palmBase.x,
         y: palmBase.y,
         landmarks: landmarks
     });
-    
+
     // Keep history limited
     if (gestureHistory.length > 20) {
         gestureHistory.shift();
@@ -359,22 +359,22 @@ function updateGestureHistory(landmarks) {
  */
 function detectSwipe() {
     if (gestureHistory.length < 5) return;
-    
+
     const now = Date.now();
     if (now - lastGestureTime < gestureConfig.cooldownTime) return;
-    
+
     const recent = gestureHistory.slice(-5);
     const start = recent[0];
     const end = recent[recent.length - 1];
-    
+
     const deltaX = end.x - start.x;
     const deltaTime = end.time - start.time;
     const velocity = Math.abs(deltaX) / deltaTime * 1000;
-    
+
     // Natural swipe detection
-    if (Math.abs(deltaX) > gestureConfig.swipeThreshold && 
+    if (Math.abs(deltaX) > gestureConfig.swipeThreshold &&
         velocity > gestureConfig.swipeSpeed) {
-        
+
         if (deltaX > 0) {
             // Swipe right = move piece right
             if (window.movePiece) {
@@ -388,7 +388,7 @@ function detectSwipe() {
                 lastGestureTime = now;
             }
         }
-        
+
         // Clear history after swipe
         gestureHistory = [];
     }
@@ -401,23 +401,23 @@ function detectRotation(landmarks) {
     // Use angle between wrist and middle finger
     const wrist = landmarks[0];
     const middleTip = landmarks[12];
-    
+
     const angle = Math.atan2(middleTip.y - wrist.y, middleTip.x - wrist.x) * 180 / Math.PI;
-    
+
     if (rotationStartAngle === null) {
         rotationStartAngle = angle;
         return;
     }
-    
+
     const deltaAngle = angle - rotationStartAngle;
-    
+
     // Check for significant rotation
     if (Math.abs(deltaAngle) > gestureConfig.rotateThreshold) {
         if (window.rotatePiece) {
             window.rotatePiece();
             lastGestureTime = Date.now();
         }
-        
+
         // Reset rotation tracking
         rotationStartAngle = angle;
     }
@@ -428,26 +428,26 @@ function detectRotation(landmarks) {
  */
 function detectDrop() {
     if (gestureHistory.length < 10) return;
-    
+
     const recent = gestureHistory.slice(-10);
     const palmMovingDown = recent.every((entry, i) => {
         if (i === 0) return true;
-        return entry.y > recent[i-1].y;
+        return entry.y > recent[i - 1].y;
     });
-    
+
     if (palmMovingDown) {
         if (!currentGesture) {
             currentGesture = 'drop';
             gestureStartTime = Date.now();
         } else if (currentGesture === 'drop') {
             const holdTime = Date.now() - gestureStartTime;
-            
+
             if (holdTime > gestureConfig.dropGestureTime) {
                 if (window.dropPiece) {
                     window.dropPiece();
                     lastGestureTime = Date.now();
                 }
-                
+
                 // Reset
                 currentGesture = null;
                 gestureHistory = [];
@@ -466,37 +466,37 @@ function detectDrop() {
 function drawGestures(landmarks) {
     const canvas = document.getElementById('gesture-canvas');
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // Draw hand outline with clear lines for natural gestures
     ctx.strokeStyle = '#33ccff';
     ctx.lineWidth = 3;
-    
+
     // Just draw palm connections for cleaner look
     const connections = [
         [0, 1], [1, 2], [2, 3], [3, 4],
         [0, 5], [5, 9], [9, 13], [13, 17], [17, 0]
     ];
-    
+
     ctx.beginPath();
     for (const [i, j] of connections) {
         const start = landmarks[i];
         const end = landmarks[j];
-        
+
         ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
         ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
     }
     ctx.stroke();
-    
+
     // Draw palm center BIG
     const palm = landmarks[0];
     ctx.fillStyle = '#ff6600';
     ctx.beginPath();
     ctx.arc(palm.x * canvas.width, palm.y * canvas.height, 10, 0, 2 * Math.PI);
     ctx.fill();
-    
+
     // Show gesture feedback
     if (currentGesture) {
         ctx.fillStyle = '#00ff00';
@@ -535,12 +535,12 @@ function loadMediaPipeScripts() {
 
         document.body.appendChild(script1);
         document.body.appendChild(script2);
-        
+
         script3.onload = () => {
             console.log('MediaPipe scripts loaded');
             resolve();
         };
-        
+
         document.body.appendChild(script3);
     });
 }
