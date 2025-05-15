@@ -1,53 +1,87 @@
-# AI Resources Repository
+# Hand Tracking + Python Agent Bridge
 
-Place to organize actual AI `./resources/` directory, a resource that gets copied into all new project by using the `./repo-starter/` directory. This AI directory also houses main copies of CORE DOCS as templates, and Claude OS app workspace documents that breakdown using tools written in JSON, including a copy for Cursor, both of which have protocol for the Memory system used to manage projects in concert, and then a master map file for all projects. 
+A collaboration between [@collidingScopes](https://github.com/collidingScopes) and [@seanivore](https://github.com/seanivore) that connects Three.js hand tracking with Python development agents.
 
-## Repo Starter & AI Resources 
+![Demo](demo.png)
 
-The `_ai` directory contains Claude-designed UI documents for AI workspaces. 
+## Quick Start
 
-- Workspace configuration files
-  - Project management memory system protocol 
-  - Memory system keywords 
-  - Tools listed in JSON format 
-  - Master map for all project planning and task management 
+```bash
+# Install dependencies
+pip install websockets
 
-- The `repo-starter` directory includes pre-configured:
-  - `.gitignore` optimized for AI development
-  - `.cursor/rules/` ready for rules, etc. 
-  - `.vscode/` with copy of settings and template Cursor workspace file 
-  - CORE DOCS as templates 
-  - The full AI `./resources/` directory 
-  - Directory full of markdown CSS files 
-  - Sample Aider config file 
+# Run everything
+./start.sh
 
-## Usage
+# Or run manually:
+python gesture_server.py
+# In another terminal:
+python3 -m http.server 8000
 
-### Starting a New Project
+# Open in browser:
+http://localhost:8000/index_with_agent.html
+```
 
-1. Create a new project directory; slug style filename will be used for the project name 
-2. Copy contents from `repo-starter/` into your new directory with `cp -R /Users/seanivore/Development/_ai.resources/repo-starter/. .`
-3. Run `git init`
-4. Rename branch to mirror project name from project directory name 
-5. Create GitHub repo with same project name using `gh repo create <repo-project-name> --public --source=. --remote=origin` 
-6. Last, push the commit using `git push -u origin <repo-project-name>` to set `git push` as functional 
+## Hand Gestures → Dev Tools
 
-### MCP Resources
+Use hand gestures to control development workflows:
 
-The `resources` directory contains essential reference materials:
+| Gesture      | Action          | Description                         |
+| ------------ | --------------- | ----------------------------------- |
+| 👍 Thumbs up  | Run tests       | Execute pytest or create test files |
+| ✌️ Peace sign | Git commit      | Create automatic commits            |
+| 👋 Wave       | Next suggestion | Get code improvement tips           |
+| 👉 Point      | Explain code    | Get explanation at cursor           |
+| ✊ Fist       | Emergency stop  | Halt running processes              |
 
-- **MCP Core Concepts** - Foundational documentation on Model Context Protocol
-- **MCP Spec Schemas** - Technical specifications and JSON schemas
-- **MCP Test & Debug** - Tools and guides for testing MCP implementations
-- **Aider How To** - Aider documentation in TXT format
-- **About SFA** - About Single File Agents 
-- **LLM Context** - LLM Context how to; still confusing  
+Hold gestures for 500ms to trigger (prevents accidental activation).
 
-### MASTER_MAP
+## Features
 
-The [MASTER_MAP.md](./AI.MASTER_MAP.md) is our central planning document that:
+- **Original hand tracking** by collidingScopes with Three.js
+- **Gesture detection** with MediaPipe
+- **WebSocket bridge** to Python agents
+- **Actual dev tool control** - not just demos!
+- **Visual feedback** for all interactions
 
-- Organizes all projects, tasks, and priorities in one place
-- Uses emoji indicators for visual task status tracking
-- Structures work into New Business, In Focus, and Old Business sections
-- Provides a foundation for automated task management via single-file agents
+## Project Structure
+
+```
+c-scopes-handy-agent/
+├── index.html              # Original hand tracking
+├── index_with_agent.html   # Enhanced with gestures
+├── gesture_server.py       # WebSocket server
+├── start.sh               # Quick start script
+├── agents/                # Python automation
+│   └── vision_command_agent.py
+└── docs/                  # Documentation
+    ├── CLAUDE.md
+    ├── AGENT_README.md
+    └── README_INTEGRATED.md
+```
+
+## Technical Details
+
+1. **MediaPipe** detects 21 hand landmarks
+2. **Custom gesture detection** identifies specific poses
+3. **WebSocket** (ws://localhost:8765) bridges browser ↔ Python
+4. **Python agents** execute real commands
+5. **Three.js** provides visual feedback
+
+## Credits
+
+- Hand tracking visualization: [@measure_plan](https://x.com/measure_plan)
+- Original repo: [threejs-handtracking-101](https://github.com/collidingScopes/threejs-handtracking-101)
+- Agent integration: [@seanivore](https://github.com/seanivore)
+
+## Future Ideas
+
+- [ ] Hand clap to "smack" objects
+- [ ] Two-hand gestures for complex commands
+- [ ] AR overlay for code reviews
+- [ ] Voice commands integration
+- [ ] Custom gesture training
+
+## License
+
+MIT - See original repository for details
