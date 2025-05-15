@@ -42,7 +42,7 @@ function initNaturalPoseControls() {
     // More robust camera support check
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error("Camera not supported by browser or permissions denied");
-
+        
         // Create a prominent error overlay
         const errorOverlay = document.createElement('div');
         errorOverlay.style.cssText = `
@@ -80,7 +80,7 @@ function initNaturalPoseControls() {
             ">Retry Camera Access</button>
         `;
         document.body.appendChild(errorOverlay);
-
+        
         // Add retry button functionality
         setTimeout(() => {
             document.getElementById('retry-camera')?.addEventListener('click', () => {
@@ -88,7 +88,7 @@ function initNaturalPoseControls() {
                 requestCameraExplicitly();
             });
         }, 100);
-
+        
         return;
     }
 
@@ -296,37 +296,37 @@ function addGestureToggle() {
  */
 // Fix toggle gestures to be more direct
 function toggleGestures() {
-    console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
+        console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
 
-    // Always request camera explicitly first
-    if (typeof requestCameraExplicitly === 'function') {
-        console.log('Explicitly requesting camera from toggle button');
-        requestCameraExplicitly();
-        return; // Let the explicit request handle everything
-    }
+        // Always request camera explicitly first
+if (typeof requestCameraExplicitly === 'function') {
+console.log('Explicitly requesting camera from toggle button');
+            requestCameraExplicitly();
+return; // Let the explicit request handle everything
+}
 
-    const button = document.getElementById('gesture-button');
+const button = document.getElementById('gesture-button');
 
-    if (trackingStarted) {
-        gestureConfig.enabled = !gestureConfig.enabled;
+if (trackingStarted) {
+gestureConfig.enabled = !gestureConfig.enabled;
 
-        // Toggle visibility
-        videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
-        document.getElementById('gesture-canvas').style.display =
-            gestureConfig.enabled ? 'block' : 'none';
+// Toggle visibility
+videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
+document.getElementById('gesture-canvas').style.display =
+gestureConfig.enabled ? 'block' : 'none';
 
-        // Update button state
-        if (button) {
-            if (gestureConfig.enabled) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
+            // Update button state
+if (button) {
+    if (gestureConfig.enabled) {
+            button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
             }
-        }
 
-        updateControlsDisplay();
-        return;
-    }
+            updateControlsDisplay();
+            return;
+        }
 
     // Start tracking
     if (poseCamera) {
@@ -436,7 +436,7 @@ function handlePoseResults(results) {
  */
 function updateGestureHistory(landmarks) {
     const now = Date.now();
-
+    
     // Use the right wrist as our main reference point
     const rightWrist = landmarks[16]; // Right wrist landmark
 
@@ -466,34 +466,34 @@ function detectBigGestures(landmarks) {
     // - Elbow (not directly available, using palm direction)
     // - Wrist (landmark[0])
     // - Palm position and orientation
-
+    
     // Get wrist position (our main reference point)
     const wrist = landmarks[0];
-
+    
     // Get palm direction using middle finger MCP
     const middleMCP = landmarks[9];
-
+    
     // Calculate palm direction vector (approximating forearm direction)
     const palmDirectionX = middleMCP.x - wrist.x;
     const palmDirectionY = middleMCP.y - wrist.y;
-
+    
     // Log palm orientation for debugging
     console.log(`Palm direction: ${palmDirectionX.toFixed(2)}, ${palmDirectionY.toFixed(2)}`);
-
+    
     // Detect BACKHAND (Move Right) - hand moving right with palm facing left
     if (gestureHistory.length >= 5) {
         const recent = gestureHistory.slice(-5);
         const start = recent[0];
         const end = recent[recent.length - 1];
-
+        
         const deltaX = end.x - start.x;
         const deltaTime = end.time - start.time;
         const velocity = Math.abs(deltaX) / deltaTime * 1000;
-
+        
         // Check for significant horizontal movement with sufficient speed
-        if (Math.abs(deltaX) > gestureConfig.swipeThreshold * 1.5 &&
+        if (Math.abs(deltaX) > gestureConfig.swipeThreshold * 1.5 && 
             velocity > gestureConfig.swipeSpeed) {
-
+            
             // BACKHAND (palm facing away from motion direction)
             if (deltaX > 0 && palmDirectionX < 0) {
                 // Backhand swipe right - CONFIRMATION action
@@ -502,7 +502,7 @@ function detectBigGestures(landmarks) {
                     window.movePiece(1, 0);
                     lastGestureTime = Date.now();
                 }
-            }
+            } 
             // FRONTHAND (palm facing motion direction)
             else if (deltaX < 0 && palmDirectionX > 0) {
                 // Fronthand swipe left - move left action
@@ -512,24 +512,24 @@ function detectBigGestures(landmarks) {
                     lastGestureTime = Date.now();
                 }
             }
-
+            
             // Clear history after gesture
             gestureHistory = [];
         }
     }
-
+    
     // Detect ROTATION gesture (hand twist with fingers wide)
     // This is your "fingers wide, palm forward, hand twist" concept
     const thumb = landmarks[4];
     const indexTip = landmarks[8];
     const pinkyTip = landmarks[20];
-
+    
     // Check if fingers are spread wide (distance between index and pinky)
     const fingerSpread = Math.sqrt(
-        Math.pow(indexTip.x - pinkyTip.x, 2) +
+        Math.pow(indexTip.x - pinkyTip.x, 2) + 
         Math.pow(indexTip.y - pinkyTip.y, 2)
     );
-
+    
     // If fingers are spread wide, detect rotation
     if (fingerSpread > 0.15) { // Threshold for spread fingers
         // Use original rotation detection with the spread fingers check
@@ -538,10 +538,10 @@ function detectBigGestures(landmarks) {
             console.log('Starting rotation detection with fingers spread');
             return;
         }
-
+        
         const currentAngle = Math.atan2(middleMCP.y - wrist.y, middleMCP.x - wrist.x) * 180 / Math.PI;
         const deltaAngle = currentAngle - rotationStartAngle;
-
+        
         // Detect significant rotation with spread fingers
         if (Math.abs(deltaAngle) > gestureConfig.rotateThreshold) {
             if (window.rotatePiece) {
@@ -549,7 +549,7 @@ function detectBigGestures(landmarks) {
                 window.rotatePiece();
                 lastGestureTime = Date.now();
             }
-
+            
             // Reset rotation tracking
             rotationStartAngle = currentAngle;
         }
@@ -557,21 +557,21 @@ function detectBigGestures(landmarks) {
         // Reset rotation tracking if fingers are no longer spread
         rotationStartAngle = null;
     }
-
+    
     // Detect PALM DOWN gesture (open palm facing down)
     // This corresponds to your palm-down gesture for fast drop
     if (gestureHistory.length >= 8) {
         const recent = gestureHistory.slice(-8);
-
+        
         // Check if palm is facing downward (negative Y in landmark space)
         const isPalmDown = palmDirectionY < -0.1;
-
+        
         // Check if hand is moving downward
         const isMovingDown = recent.every((entry, i) => {
             if (i === 0) return true;
             return entry.y > recent[i - 1].y - 0.005; // Allow slight upward movement for stability
         });
-
+        
         if (isPalmDown && isMovingDown) {
             if (!currentGesture || currentGesture !== 'palm-down') {
                 currentGesture = 'palm-down';
@@ -579,14 +579,14 @@ function detectBigGestures(landmarks) {
                 console.log('PALM DOWN gesture started');
             } else if (currentGesture === 'palm-down') {
                 const holdTime = Date.now() - gestureStartTime;
-
+                
                 if (holdTime > gestureConfig.dropGestureTime) {
                     if (window.dropPiece) {
                         console.log('PALM DOWN completed - dropping piece');
                         window.dropPiece();
                         lastGestureTime = Date.now();
                     }
-
+                    
                     // Reset
                     currentGesture = null;
                     gestureHistory = [];
@@ -596,16 +596,16 @@ function detectBigGestures(landmarks) {
             currentGesture = null;
         }
     }
-
+    
     // Detect WAVE gesture to pause/unpause game
     if (gestureHistory.length >= 10) {
         const recent = gestureHistory.slice(-10);
         let waveCount = 0;
         let lastDeltaX = 0;
-
+        
         // Count direction changes in recent history
         for (let i = 1; i < recent.length; i++) {
-            const deltaX = recent[i].x - recent[i - 1].x;
+            const deltaX = recent[i].x - recent[i-1].x;
             if (Math.abs(deltaX) > 0.02) { // Threshold for significant movement
                 if (lastDeltaX * deltaX < 0) { // Direction changed
                     waveCount++;
@@ -613,7 +613,7 @@ function detectBigGestures(landmarks) {
                 lastDeltaX = deltaX;
             }
         }
-
+        
         // If we detected several direction changes, consider it a wave
         if (waveCount >= 3 && Date.now() - lastGestureTime > 1000) {
             console.log('WAVE gesture detected - toggling pause');
@@ -635,10 +635,10 @@ function drawPose(landmarks, results) {
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    
     // Draw the pose landmarks
     if (!landmarks) return;
-
+    
     // Define the key landmarks we care about for our gestures
     const rightShoulder = landmarks[12];
     const rightElbow = landmarks[14];
@@ -646,83 +646,83 @@ function drawPose(landmarks, results) {
     const leftShoulder = landmarks[11];
     const leftElbow = landmarks[13];
     const leftWrist = landmarks[15];
-
+    
     // Draw right arm (primary control arm)
     if (rightShoulder && rightElbow && rightWrist) {
         // Draw arm segments with thick lines
         ctx.strokeStyle = '#33ccff'; // Cyan blue
         ctx.lineWidth = 6;
-
+        
         // Upper arm
         ctx.beginPath();
         ctx.moveTo(rightShoulder.x * canvas.width, rightShoulder.y * canvas.height);
         ctx.lineTo(rightElbow.x * canvas.width, rightElbow.y * canvas.height);
         ctx.stroke();
-
+        
         // Forearm (with different color for better visibility)
         ctx.strokeStyle = '#00ff99'; // Green
         ctx.beginPath();
         ctx.moveTo(rightElbow.x * canvas.width, rightElbow.y * canvas.height);
         ctx.lineTo(rightWrist.x * canvas.width, rightWrist.y * canvas.height);
         ctx.stroke();
-
+        
         // Draw joints with circles
         ctx.fillStyle = '#ff3366'; // Red
-
+        
         // Shoulder
         ctx.beginPath();
         ctx.arc(rightShoulder.x * canvas.width, rightShoulder.y * canvas.height, 8, 0, 2 * Math.PI);
         ctx.fill();
-
+        
         // Elbow - slightly larger
         ctx.fillStyle = '#ffcc00'; // Yellow
         ctx.beginPath();
         ctx.arc(rightElbow.x * canvas.width, rightElbow.y * canvas.height, 10, 0, 2 * Math.PI);
         ctx.fill();
-
+        
         // Wrist - largest as it's the most important reference point
         ctx.fillStyle = '#ff9900'; // Orange
         ctx.beginPath();
         ctx.arc(rightWrist.x * canvas.width, rightWrist.y * canvas.height, 12, 0, 2 * Math.PI);
         ctx.fill();
     }
-
+    
     // Draw left arm with slightly thinner lines
     if (leftShoulder && leftElbow && leftWrist) {
         ctx.strokeStyle = '#9966ff'; // Purple
         ctx.lineWidth = 4;
-
+        
         // Upper arm
         ctx.beginPath();
         ctx.moveTo(leftShoulder.x * canvas.width, leftShoulder.y * canvas.height);
         ctx.lineTo(leftElbow.x * canvas.width, leftElbow.y * canvas.height);
         ctx.stroke();
-
+        
         // Forearm
         ctx.beginPath();
         ctx.moveTo(leftElbow.x * canvas.width, leftElbow.y * canvas.height);
         ctx.lineTo(leftWrist.x * canvas.width, leftWrist.y * canvas.height);
         ctx.stroke();
-
+        
         // Draw joints
         ctx.fillStyle = '#9966ff'; // Purple
-
+        
         // Shoulder
         ctx.beginPath();
         ctx.arc(leftShoulder.x * canvas.width, leftShoulder.y * canvas.height, 6, 0, 2 * Math.PI);
         ctx.fill();
-
+        
         // Elbow
         ctx.beginPath();
         ctx.arc(leftElbow.x * canvas.width, leftElbow.y * canvas.height, 8, 0, 2 * Math.PI);
         ctx.fill();
-
+        
         // Wrist
         ctx.beginPath();
         ctx.arc(leftWrist.x * canvas.width, leftWrist.y * canvas.height, 10, 0, 2 * Math.PI);
         ctx.fill();
     }
-
+    
     // Draw torso connecting shoulders if both visible
     if (leftShoulder && rightShoulder) {
         ctx.strokeStyle = '#cccccc'; // Gray
@@ -732,21 +732,21 @@ function drawPose(landmarks, results) {
         ctx.lineTo(rightShoulder.x * canvas.width, rightShoulder.y * canvas.height);
         ctx.stroke();
     }
-
+    
     // Show current gesture if active
     if (currentGesture) {
         ctx.fillStyle = '#00ff00'; // Bright green
         ctx.font = 'bold 24px Arial';
         ctx.fillText(currentGesture.toUpperCase(), 10, 30);
     }
-
+    
     // Show angles for debugging (optional)
     if (rightElbow && rightShoulder && rightWrist) {
         const forearmAngle = Math.atan2(
             rightWrist.y - rightElbow.y,
             rightWrist.x - rightElbow.x
         ) * 180 / Math.PI;
-
+        
         ctx.fillStyle = '#ffffff';
         ctx.font = '12px monospace';
         ctx.fillText(`Arm Angle: ${forearmAngle.toFixed(1)}°`, 10, canvas.height - 10);
@@ -769,7 +769,7 @@ function clearVisualization() {
  */
 function requestCameraExplicitly() {
     console.log('Explicitly requesting camera access');
-
+    
     // Create an overlay to show camera status
     const statusOverlay = document.createElement('div');
     statusOverlay.id = 'camera-status-overlay';
@@ -789,39 +789,39 @@ function requestCameraExplicitly() {
     `;
     statusOverlay.innerHTML = 'Requesting camera access...';
     document.body.appendChild(statusOverlay);
-
+    
     // First check if the API exists
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         statusOverlay.innerHTML = 'ERROR: Your browser does not support camera access.<br>Try using Chrome or Edge.';
         console.error('Camera API not available');
         return;
     }
-
+    
     // Try to directly access the camera with plain getUserMedia
-    navigator.mediaDevices.getUserMedia({
+    navigator.mediaDevices.getUserMedia({ 
         video: {
             width: { ideal: 320 },
             height: { ideal: 240 }
         }
     })
-        .then(stream => {
-            statusOverlay.innerHTML = 'Camera access GRANTED! Initializing pose tracking...';
-
-            // Check if we're already using a video element
-            let existingVideo = document.getElementById('gesture-video');
-
-            if (!existingVideo || !existingVideo.srcObject) {
-                // If videoElement exists but has no stream
-                if (videoElement && !videoElement.srcObject) {
-                    console.log('Connecting stream to existing video element');
-                    videoElement.srcObject = stream;
-                    videoElement.style.display = 'block';
-                } else {
-                    console.log('Creating new video element for camera');
-                    // Create a temporary video to verify the camera works
-                    const tempVideo = document.createElement('video');
-                    tempVideo.id = 'debug-video';
-                    tempVideo.style.cssText = `
+    .then(stream => {
+        statusOverlay.innerHTML = 'Camera access GRANTED! Initializing pose tracking...';
+        
+        // Check if we're already using a video element
+        let existingVideo = document.getElementById('gesture-video');
+        
+        if (!existingVideo || !existingVideo.srcObject) {
+            // If videoElement exists but has no stream
+            if (videoElement && !videoElement.srcObject) {
+                console.log('Connecting stream to existing video element');
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+            } else {
+                console.log('Creating new video element for camera');
+                // Create a temporary video to verify the camera works
+                const tempVideo = document.createElement('video');
+                tempVideo.id = 'debug-video';
+                tempVideo.style.cssText = `
                     position: absolute;
                     right: 20px;
                     bottom: 20px;
@@ -833,47 +833,47 @@ function requestCameraExplicitly() {
                     z-index: 9999;
                     transform: scaleX(-1);
                 `;
-                    tempVideo.autoplay = true;
-                    tempVideo.playsInline = true;
-                    tempVideo.muted = true;
-                    tempVideo.srcObject = stream;
-                    document.body.appendChild(tempVideo);
-                }
-
-                // Now try to properly initialize pose tracking
-                setTimeout(() => {
-                    statusOverlay.innerHTML = 'Camera accessible! Now initializing pose tracking...';
-                    console.log('Camera access successful, setting up pose tracking');
-
-                    // Try to kick-start the process again
-                    if (typeof initNaturalPoseControls === 'function') {
-                        try {
-                            initNaturalPoseControls();
-                            statusOverlay.innerHTML += '<br>Pose tracking initialized!';
-                        } catch (error) {
-                            statusOverlay.innerHTML += `<br>Error initializing tracking: ${error.message}`;
-                            console.error('Error initializing pose controls:', error);
-                        }
-                    } else {
-                        statusOverlay.innerHTML += '<br>Pose tracking function not available!';
-                    }
-                }, 1000);
-            } else {
-                statusOverlay.innerHTML = 'Camera already connected to video element.';
+                tempVideo.autoplay = true;
+                tempVideo.playsInline = true;
+                tempVideo.muted = true;
+                tempVideo.srcObject = stream;
+                document.body.appendChild(tempVideo);
             }
-        })
-        .catch(error => {
-            statusOverlay.innerHTML = `Camera access DENIED: ${error.message}<br>The game requires camera access to detect body movements.<br><button id="retry-camera-btn" style="margin-top:10px;padding:5px 10px;background:#33ccff;border:none;border-radius:4px;cursor:pointer;">Try Again</button>`;
-            console.error('Camera permission error:', error);
-
-            // Add retry button functionality
+            
+            // Now try to properly initialize pose tracking
             setTimeout(() => {
-                document.getElementById('retry-camera-btn')?.addEventListener('click', () => {
-                    statusOverlay.remove();
-                    requestCameraExplicitly();
-                });
-            }, 100);
-        });
+                statusOverlay.innerHTML = 'Camera accessible! Now initializing pose tracking...';
+                console.log('Camera access successful, setting up pose tracking');
+                
+                // Try to kick-start the process again
+                if (typeof initNaturalPoseControls === 'function') {
+                    try {
+                        initNaturalPoseControls();
+                        statusOverlay.innerHTML += '<br>Pose tracking initialized!';
+                    } catch (error) {
+                        statusOverlay.innerHTML += `<br>Error initializing tracking: ${error.message}`;
+                        console.error('Error initializing pose controls:', error);
+                    }
+                } else {
+                    statusOverlay.innerHTML += '<br>Pose tracking function not available!';
+                }
+            }, 1000);
+        } else {
+            statusOverlay.innerHTML = 'Camera already connected to video element.';
+        }
+    })
+    .catch(error => {
+        statusOverlay.innerHTML = `Camera access DENIED: ${error.message}<br>The game requires camera access to detect body movements.<br><button id="retry-camera-btn" style="margin-top:10px;padding:5px 10px;background:#33ccff;border:none;border-radius:4px;cursor:pointer;">Try Again</button>`;
+        console.error('Camera permission error:', error);
+        
+        // Add retry button functionality
+        setTimeout(() => {
+            document.getElementById('retry-camera-btn')?.addEventListener('click', () => {
+                statusOverlay.remove();
+                requestCameraExplicitly();
+            });
+        }, 100);
+    });
 }
 
 /**

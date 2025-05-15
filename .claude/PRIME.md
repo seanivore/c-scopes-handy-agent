@@ -2,7 +2,18 @@
 
 Read the following documents to understand the context of the project and the initial thoughts on how to move forward. 
 
-Run the following command: 
+## Memory MCP Project State Updates 
+
+Check the `memory` MCP for entity types: 
+
+- 2025/02/21-big-tetris-integration
+- BIG-Gesture-System
+
+Which should give you a general idea of the project and goals. 
+
+## Project Structure 
+
+Run the following command for a tree of the project directory structure if needed. 
 
 ```bash
 ptree
@@ -15,7 +26,7 @@ I was chatting with a developer on Twitter who is using visual AI intelligence a
 
 You were impressed by their Three.js Hand Tracking 101 repository and we immediately starting building things and trying to connect the use of SFA into the use-cases of the interactive potential of the technical functionality. 
 
-[Simple Ball Size Control](https://collidingscopes.github.io/threejs-handtracking-101/)
+[Simple Ball Size Control](../docs/threejs-handtracking-101)
 
 ## Building The Foundation 
 
@@ -52,3 +63,12 @@ Starting with Tetris
 - Perfect for perfecting core interactions
 - Fun and immediately understandable 
 
+## Their Tetris Starting Point 
+
+These files might have been edited for our purposes, but they are all still there from Alan's original implementation. 
+
+[VISION_UI_TETRIS](../docs/VISION_UI_TETRIS)
+
+## And of course the README
+
+[README.md](../README.md)

@@ -134,20 +134,21 @@
             <h1>TETRIS WITH NATURAL GESTURES</h1>
 
             <div class="camera-prompt">
-                <h3>🎮 This version uses hand gestures only!</h3>
-                <p>No keyboard or touch controls - just natural hand movements</p>
+                <h3>🎮 This version uses full body tracking!</h3>
+                <p>No keyboard or touch controls - just natural arm movements</p>
             </div>
 
-            <!-- Natural Gesture controls explanation -->
+            <!-- Full Body Gesture controls explanation -->
             <div class="gesture-info">
                 <h3>How to Play:</h3>
                 <ul class="controls-list">
-                    <li><strong>🫸 Swipe:</strong> Move piece left/right (whole hand movement)</li>
-                    <li><strong>🤌 Rotate hand:</strong> Turn piece like opening a door</li>
-                    <li><strong>🫳 Palm down:</strong> Drop piece fast</li>
-                    <li><strong>👋 Wave:</strong> Pause the game</li>
+                    <li><strong>🫸 RIGHT ARM:</strong> Move arm right to move piece right</li>
+                    <li><strong>🫷 LEFT ARM:</strong> Move arm left to move piece left</li>
+                    <li><strong>🤚 ROTATE:</strong> Rotate forearm to rotate piece</li>
+                    <li><strong>🫳 ARM DOWN:</strong> Extend arm down to drop piece</li>
+                    <li><strong>👋 WAVE:</strong> Wave arms to pause the game</li>
                 </ul>
-                <p style="margin-top: 10px; font-style: italic;">No finger counting required - just natural hand positions!</p>
+                <p style="margin-top: 10px; font-style: italic;">Full body tracking - use natural arm movements!</p>
             </div>
 
             <!-- Camera Setup Info -->
@@ -227,12 +228,12 @@
     </div>
 
     <!-- Load natural hand controls FIRST -->
-    <!-- MediaPipe libraries -->
+    <!-- MediaPipe libraries for Pose tracking -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     
-    <!-- Load natural hand controls AFTER MediaPipe libraries -->
+    <!-- Load natural pose controls AFTER MediaPipe libraries -->
     <script src="natural_hand_controls.js"></script>
 
     <!-- Core game scripts -->
