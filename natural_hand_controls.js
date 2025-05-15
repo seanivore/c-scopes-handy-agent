@@ -27,6 +27,11 @@ let currentGesture = null;
 let gestureStartTime = 0;
 let rotationStartAngle = null;
 
+// Expose tracking state globally
+window.gestureTrackingState = {
+    started: false
+};
+
 /**
  * Initialize natural hand controls (no finger tracking)
  */
@@ -200,6 +205,7 @@ function toggleGestures() {
             .then(() => {
                 console.log('Camera started successfully');
                 trackingStarted = true;
+                window.gestureTrackingState.started = true;  // Update global state
                 gestureConfig.enabled = true;
                 videoElement.style.display = 'block';
                 document.getElementById('gesture-canvas').style.display = 'block';

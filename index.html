@@ -121,10 +121,7 @@
           <!-- Camera Setup Info -->
           <div class="camera-prompt">
               <h3>To Start Playing:</h3>
-              <p>1. Click START GAME below</p>
-              <p>2. Click the glowing 🤌 button (top left) to enable camera</p>
-              <p>3. Allow camera access when browser prompts</p>
-              <p>4. Use hand gestures to control the game!</p>
+              <p>Click START GAME and the camera will activate automatically!</p>
               <p style="margin-top: 10px; color: #33ccff;"><strong>Note:</strong> Camera permission is required - this game is gesture-only!</p>
           </div>
           
@@ -220,21 +217,94 @@
         // Override the original hand controls completely
         window.initHandControls = initNaturalHandControls;
         
-        // Disable keyboard controls by removing the event listener
-        document.addEventListener('DOMContentLoaded', () => {
-            // Wait a bit for main.js to load
+        // Wait for all scripts to load
+        window.addEventListener('load', () => {
+            console.log('Overriding game functions for gesture integration...');
+            
+            // Expose tracking state globally
+            window.isGestureTrackingStarted = () => {
+                return window.gestureTrackingState && window.gestureTrackingState.started;
+            };
+            
+            // Make start button also activate gestures
+            if (window.startGame) {
+                const originalStartGame = window.startGame;
+                window.startGame = function() {
+                    console.log('Starting game with gestures...');
+                    originalStartGame();
+                    
+                    // Also start gesture controls
+                    setTimeout(() => {
+                        const gestureButton = document.getElementById('gesture-button');
+                        if (gestureButton && !window.isGestureTrackingStarted()) {
+                            console.log('Auto-clicking gesture button...');
+                            gestureButton.click();
+                        }
+                    }, 500);
+                };
+            }
+            
+            // Make play button also activate gestures if needed
+            if (window.playGame) {
+                const originalPlayGame = window.playGame;
+                window.playGame = function() {
+                    console.log('Playing game...');
+                    originalPlayGame();
+                    
+                    // Start gesture controls if not started
+                    if (!window.isGestureTrackingStarted()) {
+                        const gestureButton = document.getElementById('gesture-button');
+                        if (gestureButton) {
+                            console.log('Starting gestures from play button...');
+                            gestureButton.click();
+                        }
+                    }
+                };
+            }
+            
+            // Update restart functions
+            if (window.restartGame1) {
+                const originalRestartGame1 = window.restartGame1;
+                window.restartGame1 = function() {
+                    console.log('Restarting game 1...');
+                    originalRestartGame1();
+                    
+                    if (!window.isGestureTrackingStarted()) {
+                        const gestureButton = document.getElementById('gesture-button');
+                        if (gestureButton) {
+                            gestureButton.click();
+                        }
+                    }
+                };
+            }
+            
+            if (window.restartGame2) {
+                const originalRestartGame2 = window.restartGame2;
+                window.restartGame2 = function() {
+                    console.log('Restarting game 2...');
+                    originalRestartGame2();
+                    
+                    if (!window.isGestureTrackingStarted()) {
+                        const gestureButton = document.getElementById('gesture-button');
+                        if (gestureButton) {
+                            gestureButton.click();
+                        }
+                    }
+                };
+            }
+            
+            // Disable keyboard controls after a delay
             setTimeout(() => {
-                // Remove the keyboard event listener
+                console.log('Disabling keyboard controls...');
                 window.removeEventListener('keydown', handleKeyPress);
                 
-                // Add a message when someone tries to use keyboard
                 window.addEventListener('keydown', (e) => {
-                    if (e.key !== 'F5' && e.key !== 'F12') { // Allow refresh and dev tools
+                    if (e.key !== 'F5' && e.key !== 'F12') {
                         e.preventDefault();
-                        console.log('This version uses hand gestures only! Click the 🤌 button to enable camera.');
+                        console.log('This version uses hand gestures only!');
                     }
                 });
-            }, 1000);
+            }, 2000);
         });
     </script>
 
