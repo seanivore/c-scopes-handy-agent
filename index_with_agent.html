@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Tracking Demo with Three.js + Agent Integration</title>
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="eb59c81c-27cb-4e1d-9e8c-bfbe70c48cd9"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+        }
+        
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #webcam {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror the webcam feed */
+        }
+        
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* Mirror the canvas to match webcam */
+            pointer-events: none;
+        }
+        
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+        }
+
+        #agent-status {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 100, 200, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+            display: none;
+        }
+
+        #gesture-log {
+            position: absolute;
+            bottom: 60px;
+            left: 20px;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 10;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 300px;
+        }
+
+        .gesture-item {
+            margin: 2px 0;
+            padding: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        #links-para{
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-family: Helvetica, sans-serif;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.5);
+            padding: 10px;
+        }
+
+        a {
+            color: #0000FF !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div id="three-canvas"></div>
+        <div id="status">Loading MediaPipe...</div>
+        <div id="agent-status">Agent Disconnected</div>
+        <div id="gesture-log"></div>
+    </div>
+
+    <p id="links-para"><a href="https://x.com/measure_plan" target="_blank">Twitter</a> | <a href="https://www.instagram.com/stereo.drift/" target="_blank">Instagram</a> | <a href="https://github.com/collidingScopes/threejs-handtracking-101" target="_blank">Source Code</a> | <a href="https://buymeacoffee.com/stereodrift" target="_blank">❤️</a></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoElement = document.getElementById('webcam');
+            const canvasElement = document.getElementById('canvas');
+            const canvasCtx = canvasElement.getContext('2d');
+            const statusElement = document.getElementById('status');
+            const agentStatusElement = document.getElementById('agent-status');
+            const gestureLogElement = document.getElementById('gesture-log');
+            const threeContainer = document.getElementById('three-canvas');
+            
+            // WebSocket for Python agent connection
+            let ws = null;
+            
+            // Gesture detection variables
+            let lastGesture = null;
+            let gestureHoldTime = 0;
+            const GESTURE_THRESHOLD = 500; // Hold gesture for 500ms to trigger
+            
+            // Connect to Python agent
+            function connectToAgent() {
+                try {
+                    ws = new WebSocket('ws://localhost:8765');
+                    
+                    ws.onopen = () => {
+                        console.log('Connected to Python agent');
+                        agentStatusElement.textContent = 'Agent Connected';
+                        agentStatusElement.style.backgroundColor = 'rgba(0, 200, 100, 0.6)';
+                        agentStatusElement.style.display = 'block';
+                    };
+                    
+                    ws.onclose = () => {
+                        console.log('Disconnected from Python agent');
+                        agentStatusElement.textContent = 'Agent Disconnected';
+                        agentStatusElement.style.backgroundColor = 'rgba(200, 0, 0, 0.6)';
+                        setTimeout(connectToAgent, 2000); // Try to reconnect
+                    };
+                    
+                    ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        console.log('Agent result:', data);
+                        
+                        // Add to gesture log
+                        const logItem = document.createElement('div');
+                        logItem.className = 'gesture-item';
+                        logItem.textContent = `${data.gesture}: ${data.result}`;
+                        gestureLogElement.insertBefore(logItem, gestureLogElement.firstChild);
+                        
+                        // Keep only last 10 logs
+                        while (gestureLogElement.children.length > 10) {
+                            gestureLogElement.removeChild(gestureLogElement.lastChild);
+                        }
+                    };
+                    
+                    ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                    };
+                } catch (error) {
+                    console.error('Failed to connect to agent:', error);
+                    setTimeout(connectToAgent, 2000);
+                }
+            }
+            
+            // Send gesture to Python agent
+            function sendGestureToPython(gesture, confidence = 1.0, numHands = 1) {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'gesture',
+                        gesture: gesture,
+                        confidence: confidence,
+                        hands: numHands
+                    }));
+                }
+            }
+            
+            // Gesture detection functions
+            function detectThumbsUp(landmarks) {
+                const thumbTip = landmarks[4];
+                const thumbBase = landmarks[2];
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+                
+                return thumbTip.y < thumbBase.y && 
+                       indexTip.y > landmarks[6].y &&
+                       middleTip.y > landmarks[10].y;
+            }
+            
+            function detectPeaceSign(landmarks) {
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+                const ringTip = landmarks[16];
+                
+                return indexTip.y < landmarks[6].y &&
+                       middleTip.y < landmarks[10].y &&
+                       ringTip.y > landmarks[14].y;
+            }
+            
+            function detectPointingUp(landmarks) {
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+                const ringTip = landmarks[16];
+                
+                return indexTip.y < landmarks[6].y &&
+                       middleTip.y > landmarks[10].y &&
+                       ringTip.y > landmarks[14].y;
+            }
+            
+            function detectOpenHand(landmarks) {
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+                const ringTip = landmarks[16];
+                const pinkyTip = landmarks[20];
+                
+                return indexTip.y < landmarks[6].y &&
+                       middleTip.y < landmarks[10].y &&
+                       ringTip.y < landmarks[14].y &&
+                       pinkyTip.y < landmarks[18].y;
+            }
+            
+            function detectFist(landmarks) {
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+                const ringTip = landmarks[16];
+                const pinkyTip = landmarks[20];
+                
+                return indexTip.y > landmarks[6].y &&
+                       middleTip.y > landmarks[10].y &&
+                       ringTip.y > landmarks[14].y &&
+                       pinkyTip.y > landmarks[18].y;
+            }
+            
+            function detectGesture(landmarks) {
+                if (detectThumbsUp(landmarks)) return 'thumbs_up';
+                if (detectPeaceSign(landmarks)) return 'peace_sign';
+                if (detectPointingUp(landmarks)) return 'point';
+                if (detectOpenHand(landmarks)) return 'wave';
+                if (detectFist(landmarks)) return 'fist';
+                return null;
+            }
+            
+            // Three.js variables (rest of the original code)
+            let scene, camera, renderer;
+            let sphere, solidMesh, wireframeMesh;
+            
+            // Hand tracking variables
+            let rightHandActive = false;
+            let leftHandActive = false;
+            let lastColorChangeTime = 0;
+            const colorChangeDelay = 500;
+            let currentSphereSize = 1.0;
+            let targetSphereSize = 1.0;
+            const smoothingFactor = 0.15;
+
+            // (Rest of the original functions remain the same)
+            
+            // Keep the original functions intact
+            function updateCanvasSize() {
+                canvasElement.width = window.innerWidth;
+                canvasElement.height = window.innerHeight;
+            }
+            
+            function initializeLayout() {
+                updateCanvasSize();
+            }
+            
+            window.addEventListener('resize', () => {
+                initializeLayout();
+                if (renderer) {
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+                if (camera) {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                }
+            });
+            
+            initializeLayout();
+            
+            async function initWebcam() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 },
+                            facingMode: 'user'
+                        }
+                    });
+                    
+                    videoElement.srcObject = stream;
+                    
+                    return new Promise((resolve) => {
+                        videoElement.onloadedmetadata = () => {
+                            initializeLayout();
+                            resolve(videoElement);
+                        };
+                    });
+                } catch (error) {
+                    statusElement.textContent = `Error accessing webcam: ${error.message}`;
+                    console.error('Error accessing webcam:', error);
+                    throw error;
+                }
+            }
+            
+            function getRandomNeonColor() {
+                const neonColors = [
+                    0xFF00FF, 0x00FFFF, 0xFF3300, 0x39FF14, 
+                    0xFF0099, 0x00FF00, 0xFF6600, 0xFFFF00
+                ];
+                return neonColors[Math.floor(Math.random() * neonColors.length)];
+            }
+            
+            function initThreeJS() {
+                scene = new THREE.Scene();
+                
+                camera = new THREE.PerspectiveCamera(
+                    75, 
+                    window.innerWidth / window.innerHeight, 
+                    0.1, 
+                    1000
+                );
+                camera.position.z = 5;
+                
+                renderer = new THREE.WebGLRenderer({ 
+                    antialias: true, 
+                    alpha: true
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x000000, 0);
+                threeContainer.appendChild(renderer.domElement);
+                
+                const geometry = new THREE.SphereGeometry(2, 32, 32);
+                
+                sphere = new THREE.Group();
+                
+                const solidMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xff00ff,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                solidMesh = new THREE.Mesh(geometry, solidMaterial);
+                sphere.add(solidMesh);
+                
+                const wireframeMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    wireframe: true,
+                    transparent: false,
+                });
+                wireframeMesh = new THREE.Mesh(geometry, wireframeMaterial);
+                sphere.add(wireframeMesh);
+                scene.add(sphere);
+                
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+                scene.add(ambientLight);
+                
+                animate();
+            }
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (sphere) {
+                    sphere.rotation.x += 0.003;
+                    sphere.rotation.y += 0.008;
+                    
+                    const time = Date.now() * 0.001;
+                    const pulseIntensity = 0.1 * Math.sin(time * 2) + 0.9;
+                    
+                    if (solidMesh && solidMesh.material) {
+                        solidMesh.material.opacity = 0.4 + 0.1 * pulseIntensity;
+                    }
+                }
+                
+                renderer.render(scene, camera);
+            }
+            
+            function calculateDistance(point1, point2) {
+                const dx = point1.x - point2.x;
+                const dy = point1.y - point2.y;
+                const dz = point1.z - point2.z;
+                return Math.sqrt(dx * dx + dy * dy + dz * dz);
+            }
+            
+            function isPointInSphere(point) {
+                const worldX = (point.x - 0.5) * 10;
+                const worldY = (0.5 - point.y) * 10;
+                const worldZ = 0;
+                
+                const spherePos = new THREE.Vector3();
+                sphere.getWorldPosition(spherePos);
+                
+                const distance = Math.sqrt(
+                    Math.pow(worldX - spherePos.x, 2) + 
+                    Math.pow(worldY - spherePos.y, 2) + 
+                    Math.pow(worldZ - spherePos.z, 2)
+                );
+                
+                const currentSize = sphere.scale.x * 2;
+                return distance < currentSize * 1;
+            }
+            
+            async function initMediaPipeHands() {
+                statusElement.textContent = 'Initializing MediaPipe Hands...';
+                
+                const hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+                
+                hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
+                await hands.initialize();
+                statusElement.textContent = 'Hand tracking ready!';
+                
+                return hands;
+            }
+            
+            function drawLandmarks(landmarks, isLeft) {
+                const screenSize = Math.min(window.innerWidth, window.innerHeight);
+                const lineWidth = Math.max(2, Math.min(5, screenSize / 300));
+                const pointSize = Math.max(2, Math.min(8, screenSize / 250));
+                
+                const connections = [
+                    [0, 1], [1, 2], [2, 3], [3, 4],
+                    [0, 5], [5, 6], [6, 7], [7, 8],
+                    [0, 9], [9, 10], [10, 11], [11, 12],
+                    [0, 13], [13, 14], [14, 15], [15, 16],
+                    [0, 17], [17, 18], [18, 19], [19, 20],
+                    [0, 5], [5, 9], [9, 13], [13, 17]
+                ];
+                
+                const handColor = isLeft ? '#00FF00' : '#00FFFF';
+                
+                canvasCtx.lineWidth = lineWidth;
+                canvasCtx.strokeStyle = handColor;
+                
+                connections.forEach(([i, j]) => {
+                    const start = landmarks[i];
+                    const end = landmarks[j];
+                    
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(start.x * canvasElement.width, start.y * canvasElement.height);
+                    canvasCtx.lineTo(end.x * canvasElement.width, end.y * canvasElement.height);
+                    canvasCtx.stroke();
+                });
+                
+                landmarks.forEach((landmark, index) => {
+                    let pointColor = handColor;
+                    if (index === 4 || index === 8) {
+                        pointColor = '#FF0000';
+                    }
+                    
+                    canvasCtx.fillStyle = pointColor;
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(
+                        landmark.x * canvasElement.width,
+                        landmark.y * canvasElement.height,
+                        pointSize * 1.2,
+                        0,
+                        2 * Math.PI
+                    );
+                    canvasCtx.fill();
+                });
+            }
+            
+            // Updated onResults function with gesture detection
+            function onResults(results) {
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                
+                if (canvasElement.width !== window.innerWidth || 
+                    canvasElement.height !== window.innerHeight) {
+                    updateCanvasSize();
+                }
+                
+                rightHandActive = false;
+                leftHandActive = false;
+                
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    statusElement.textContent = 
+                        results.multiHandLandmarks.length === 1 ? '1 hand detected' :
+                        `${results.multiHandLandmarks.length} hands detected`;
+                    
+                    for (let handIndex = 0; handIndex < results.multiHandLandmarks.length; handIndex++) {
+                        const landmarks = results.multiHandLandmarks[handIndex];
+                        const handedness = results.multiHandedness[handIndex].label;
+                        const isLeftHand = handedness === 'Left';
+                        
+                        drawLandmarks(landmarks, isLeftHand);
+                        
+                        // Detect gestures on the right hand
+                        if (!isLeftHand) {
+                            const gesture = detectGesture(landmarks);
+                            
+                            if (gesture === lastGesture && gesture !== null) {
+                                gestureHoldTime += 16; // Approximately 60fps
+                                
+                                // Show gesture being held
+                                statusElement.textContent += ` | Holding: ${gesture} (${Math.round(gestureHoldTime/GESTURE_THRESHOLD*100)}%)`;
+                                
+                                if (gestureHoldTime >= GESTURE_THRESHOLD) {
+                                    // Trigger gesture
+                                    sendGestureToPython(gesture, 0.95, results.multiHandLandmarks.length);
+                                    gestureHoldTime = -1000; // Cooldown
+                                }
+                            } else {
+                                lastGesture = gesture;
+                                gestureHoldTime = 0;
+                            }
+                            
+                            // Original sphere size control
+                            const thumbTip = landmarks[4];
+                            const indexTip = landmarks[8];
+                            const pinchDistance = calculateDistance(thumbTip, indexTip);
+                            
+                            if (pinchDistance < 0.05) {
+                                targetSphereSize = 0.2;
+                            } else if (pinchDistance > 0.25) {
+                                targetSphereSize = 2.0;
+                            } else {
+                                targetSphereSize = 0.2 + (pinchDistance - 0.05) * (2.0 - 0.2) / (0.25 - 0.05);
+                            }
+                            
+                            currentSphereSize = currentSphereSize + (targetSphereSize - currentSphereSize) * smoothingFactor;
+                            
+                            if (sphere) {
+                                sphere.scale.set(currentSphereSize, currentSphereSize, currentSphereSize);
+                            }
+                            
+                            rightHandActive = true;
+                        } else {
+                            // Left hand color control
+                            const indexTip = landmarks[8];
+                            
+                            if (isPointInSphere(indexTip)) {
+                                const currentTime = Date.now();
+                                if (currentTime - lastColorChangeTime > colorChangeDelay) {
+                                    const newColor = getRandomNeonColor();
+                                    if (solidMesh && solidMesh.material) {
+                                        solidMesh.material.color.setHex(newColor);
+                                    }
+                                    lastColorChangeTime = currentTime;
+                                }
+                                
+                                leftHandActive = true;
+                            }
+                        }
+                    }
+                } else {
+                    statusElement.textContent = 'No hands detected';
+                    lastGesture = null;
+                    gestureHoldTime = 0;
+                }
+            }
+            
+            async function startApp() {
+                try {
+                    // Connect to Python agent
+                    connectToAgent();
+                    
+                    await initWebcam();
+                    initThreeJS();
+                    const hands = await initMediaPipeHands();
+                    
+                    hands.onResults(onResults);
+                    
+                    const camera = new Camera(videoElement, {
+                        onFrame: async () => {
+                            await hands.send({image: videoElement});
+                        },
+                        width: 1920,
+                        height: 1080
+                    });
+                    
+                    camera.start();
+                    
+                } catch (error) {
+                    statusElement.textContent = `Error: ${error.message}`;
+                    console.error('Error starting application:', error);
+                }
+            }
+            
+            startApp();
+        });
+    </script>
+</body>
+</html>
