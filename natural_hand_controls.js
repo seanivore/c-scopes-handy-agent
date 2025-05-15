@@ -1,4 +1,111 @@
-/**
+function requestCameraExplicitly() {
+    console.log('Explicitly requesting camera access');
+    
+    // Create an overlay to show camera status
+    const statusOverlay = document.createElement('div');
+    statusOverlay.id = 'camera-status-overlay';
+    statusOverlay.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 9999;
+        font-family: Arial, sans-serif;
+        max-width: 400px;
+        font-size: 12px;
+        border: 1px solid #33ccff;
+    `;
+    statusOverlay.innerHTML = 'Requesting camera access...';
+    document.body.appendChild(statusOverlay);
+    
+    // First check if the API exists
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusOverlay.innerHTML = 'ERROR: Your browser does not support camera access.<br>Try using Chrome or Edge.';
+        console.error('Camera API not available');
+        return;
+    }
+    
+    // Try to directly access the camera with plain getUserMedia
+    navigator.mediaDevices.getUserMedia({ 
+        video: {
+            width: { ideal: 320 },
+            height: { ideal: 240 }
+        }
+    })
+    .then(stream => {
+        statusOverlay.innerHTML = 'Camera access GRANTED! Initializing tracking...';
+        
+        // Check if we're already using a video element
+        let existingVideo = document.getElementById('gesture-video');
+        
+        if (!existingVideo || !existingVideo.srcObject) {
+            // If videoElement exists but has no stream
+            if (videoElement && !videoElement.srcObject) {
+                console.log('Connecting stream to existing video element');
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+            } else {
+                console.log('Creating new video element for camera');
+                // Create a temporary video to verify the camera works
+                const tempVideo = document.createElement('video');
+                tempVideo.id = 'debug-video';
+                tempVideo.style.cssText = `
+                    position: absolute;
+                    right: 20px;
+                    bottom: 20px;
+                    width: 320px;
+                    height: 240px;
+                    border: 3px solid #ff3366;
+                    border-radius: 10px;
+                    display: block;
+                    z-index: 9999;
+                    transform: scaleX(-1);
+                `;
+                tempVideo.autoplay = true;
+                tempVideo.playsInline = true;
+                tempVideo.muted = true;
+                tempVideo.srcObject = stream;
+                document.body.appendChild(tempVideo);
+            }
+            
+            // Now try to properly initialize hand tracking
+            setTimeout(() => {
+                statusOverlay.innerHTML = 'Camera accessible! Now initializing hand tracking...';
+                console.log('Camera access successful, setting up hand tracking');
+                
+                // Try to kick-start the process again
+                if (typeof initNaturalHandControls === 'function') {
+                    try {
+                        initNaturalHandControls();
+                        statusOverlay.innerHTML += '<br>Hand tracking initialized!';
+                    } catch (error) {
+                        statusOverlay.innerHTML += `<br>Error initializing tracking: ${error.message}`;
+                        console.error('Error reinitializing hand controls:', error);
+                    }
+                } else {
+                    statusOverlay.innerHTML += '<br>Hand tracking function not available!';
+                }
+            }, 1000);
+        } else {
+            statusOverlay.innerHTML = 'Camera already connected to video element.';
+        }
+    })
+    .catch(error => {
+        statusOverlay.innerHTML = `Camera access DENIED: ${error.message}<br>The game requires camera access to detect hand gestures.<br><button id="retry-camera-btn" style="margin-top:10px;padding:5px 10px;background:#33ccff;border:none;border-radius:4px;cursor:pointer;">Try Again</button>`;
+        console.error('Camera permission error:', error);
+        
+        // Add retry button functionality
+        setTimeout(() => {
+            document.getElementById('retry-camera-btn')?.addEventListener('click', () => {
+                statusOverlay.remove();
+                requestCameraExplicitly();
+            });
+        }, 100);
+    });
+}/**
  * natural_hand_controls.js
  * Natural hand gestures for Tetris - no finger tracking!
  */
@@ -38,9 +145,56 @@ window.gestureTrackingState = {
 function initNaturalHandControls() {
     console.log('Initializing natural hand controls...');
 
+    // More robust camera support check
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.error("Camera not supported");
-        alert("Camera access is required for this game. Please ensure your browser supports camera access.");
+        console.error("Camera not supported by browser or permissions denied");
+        
+        // Create a prominent error overlay
+        const errorOverlay = document.createElement('div');
+        errorOverlay.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff3366;
+            z-index: 9999;
+            text-align: center;
+            max-width: 90%;
+            font-family: Arial, sans-serif;
+        `;
+        errorOverlay.innerHTML = `
+            <h3 style="color:#ff3366;">Camera Access Required</h3>
+            <p>This game requires camera access to detect hand gestures.</p>
+            <p>Your browser doesn't support camera access or permission was denied.</p>
+            <p style="font-weight:bold;">Please check:</p>
+            <ul style="text-align:left;">
+                <li>Camera permissions in your browser settings</li>
+                <li>That your device has a working camera</li>
+                <li>Try using Chrome or Edge for best compatibility</li>
+            </ul>
+            <button id="retry-camera" style="
+                padding: 8px 16px;
+                background: #33ccff;
+                border: none;
+                border-radius: 5px;
+                margin-top: 10px;
+                cursor: pointer;
+            ">Retry Camera Access</button>
+        `;
+        document.body.appendChild(errorOverlay);
+        
+        // Add retry button functionality
+        setTimeout(() => {
+            document.getElementById('retry-camera')?.addEventListener('click', () => {
+                errorOverlay.remove();
+                requestCameraExplicitly();
+            });
+        }, 100);
+        
         return;
     }
 
@@ -48,13 +202,13 @@ function initNaturalHandControls() {
     console.log('Checking MediaPipe availability...');
     console.log('Camera available?', typeof Camera !== 'undefined');
     console.log('Hands available?', typeof Hands !== 'undefined');
-    
+
     if (typeof Hands !== 'undefined' && typeof Camera !== 'undefined') {
         console.log('MediaPipe libraries already loaded, setting up gestures');
         setupNaturalGestures();
     } else {
         console.log('MediaPipe not fully loaded, waiting...');
-        
+
         // Use a more robust polling approach
         let attempts = 0;
         const checkMediaPipe = () => {
@@ -62,7 +216,7 @@ function initNaturalHandControls() {
             console.log(`MediaPipe load attempt ${attempts}/10`);
             console.log('Camera available?', typeof Camera !== 'undefined');
             console.log('Hands available?', typeof Hands !== 'undefined');
-            
+
             if (typeof Hands !== 'undefined' && typeof Camera !== 'undefined') {
                 console.log('MediaPipe loaded after waiting, setting up gestures');
                 setupNaturalGestures();
@@ -78,7 +232,7 @@ function initNaturalHandControls() {
                 });
             }
         };
-        
+
         setTimeout(checkMediaPipe, 100);
     }
 
@@ -244,31 +398,39 @@ function addGestureToggle() {
 /**
  * Toggle natural gestures on/off
  */
+// Fix toggle gestures to be more direct
 function toggleGestures() {
-    console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
+        console.log('Toggle gestures clicked, trackingStarted:', trackingStarted);
 
-    const button = document.getElementById('gesture-button');
+        // Always request camera explicitly first
+if (typeof requestCameraExplicitly === 'function') {
+console.log('Explicitly requesting camera from toggle button');
+            requestCameraExplicitly();
+return; // Let the explicit request handle everything
+}
 
-    if (trackingStarted) {
-        gestureConfig.enabled = !gestureConfig.enabled;
+const button = document.getElementById('gesture-button');
 
-        // Toggle visibility
-        videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
-        document.getElementById('gesture-canvas').style.display =
-            gestureConfig.enabled ? 'block' : 'none';
+if (trackingStarted) {
+gestureConfig.enabled = !gestureConfig.enabled;
 
-        // Update button state
-        if (button) {
-            if (gestureConfig.enabled) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
+// Toggle visibility
+videoElement.style.display = gestureConfig.enabled ? 'block' : 'none';
+document.getElementById('gesture-canvas').style.display =
+gestureConfig.enabled ? 'block' : 'none';
+
+            // Update button state
+if (button) {
+    if (gestureConfig.enabled) {
+            button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
             }
-        }
 
-        updateControlsDisplay();
-        return;
-    }
+            updateControlsDisplay();
+            return;
+        }
 
     // Start tracking
     if (handCamera) {

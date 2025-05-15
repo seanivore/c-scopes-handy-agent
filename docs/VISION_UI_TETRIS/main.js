@@ -370,6 +370,14 @@ function startGame() {
     document.getElementById('start-screen').style.display = 'none';
     gameStarted = true;
 
+    // Explicitly request camera access when game starts
+    if (typeof requestCameraExplicitly === 'function') {
+        console.log('Explicitly requesting camera on game start');
+        requestCameraExplicitly();
+    } else {
+        console.warn('Camera request function not available');
+    }
+
     // Get the selected starting level
     const selectedLevel = parseInt(document.getElementById('starting-level').value);
     level = selectedLevel;

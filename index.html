@@ -35,13 +35,29 @@
         }
 
         /* Natural gesture video styling */
-        #gesture-video {
+        #gesture-video, #debug-video {
             border: 3px solid #33ccff !important;
             box-shadow: 0 0 20px rgba(51, 204, 255, 0.5);
+            display: block !important;
         }
 
         #gesture-canvas {
             display: block !important;
+        }
+
+        /* Camera status overlay */
+        #camera-status-overlay {
+            position: fixed;
+            top: 10px; 
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px; 
+            z-index: 999;
+            max-width: 80%;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #33ccff;
         }
 
         /* Notification styling for gesture feedback */
@@ -158,6 +174,7 @@
                 </select>
             </div>
             <button id="start-button" class="button">START GAME</button>
+            <button id="camera-test-button" class="button" style="margin-top: 10px; background-color: #33ccff;">TEST CAMERA</button>
         </div>
 
         <div id="next-piece-container">
@@ -235,6 +252,17 @@
         // Wait for everything to load
         window.addEventListener('load', () => {
             console.log('Page loaded, setting up natural gestures');
+
+            // Add test camera button handler
+            document.getElementById('camera-test-button').addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Camera test button clicked');
+                if (typeof requestCameraExplicitly === 'function') {
+                    requestCameraExplicitly();
+                } else {
+                    alert('Camera test function not available');
+                }
+            });
 
             // Override the initHandControls function with better debugging
             window.initHandControls = function () {
