@@ -90,3 +90,21 @@ Store these for when we need them! Better to have gestures waiting for actions t
 ---
 
 "Building the gesture vocabulary of the future!" 🚀
+
+
+
+
+
+
+ONE HAND, FIVE FINGERS SPREAD LIKE YOUR TRYING TO PALM A BASKET BALL, BUT PALM FACING FORWARD, TURN HAND ROTATE = rotate object right or left 
+
+
+HANDS CLOSED, THUMBS ON TOP, TOGETHER IN FRONT OF YOU, THEN OPENING WIDE PARALLEL WITH SHOULDERS AND A LITTLE PAST THEM -- zooming in -- that much movement = balances out with small amount of zoom to large
+
+(if i new sign language explaining this would be easier) basically it is pinch and zoom but we need our guestures to be bigger, more italian than the ios apple gestures
+
+TWO HANDS OPEN, PALMS FORWARD, ELBOWS BENT, SHOULDER HEIGHT HANDS, THAT THEN MOVE TOWARD EACH OTHER -- zoom out
+
+similar conceptual logic as zooming in
+
+

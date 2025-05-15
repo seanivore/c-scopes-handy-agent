@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tetris</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+
+        <div id="button-container">
+          <button id="pause-button" class="button">⏯️</button>
+          <button id="mute-button" class="button">🔊</button>
+        </div>
+
+        <div id="info-container">
+          <div id="score-container">Score: <span id="score">0</span></div>
+          <div id="high-score-container">High Score: <span id="high-score">0</span></div>
+          <div id="level-container">Level: <span id="level">1</span></div>
+        </div>
+
+        <div id="controls">
+            Controls:<br>
+            ← → : Move left/right<br>
+            ↑ : Rotate<br>
+            ↓ : Move down<br>
+            Space : Drop
+        </div>
+        <div id="start-screen" class="frosted-glass-overlay">
+          <h1>CASTLEVIEW TETRIS</h1>
+          
+          <!-- Desktop controls - will be hidden on mobile by JavaScript -->
+          <ul class="controls-list">
+              <li><strong>← / → Arrows:</strong> Move piece left/right</li>
+              <li><strong>↑ Arrow:</strong> Rotate piece</li>
+              <li><strong>↓ Arrow:</strong> Move down faster</li>
+              <li><strong>Spacebar:</strong> Hard drop</li>
+          </ul>
+          
+          <!-- Mobile controls - will be hidden on desktop by JavaScript -->
+          <div class="mobile-controls">
+              <h3>Mobile Controls:</h3>
+              <ul class="controls-list">
+                  <li><strong>Tap:</strong> Rotate piece</li>
+                  <li><strong>Swipe Left/Right:</strong> Move piece</li>
+                  <li><strong>Swipe Down:</strong> Hard drop</li>
+              </ul>
+          </div>
+          
+          <p>Clear lines to score points and level up!</p>
+          <div class="level-selector">
+              <label for="starting-level">Starting Level: </label>
+              <select id="starting-level">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+              </select>
+          </div>
+          <button id="start-button" class="button">START GAME</button>
+        </div>
+        <div id="next-piece-container">
+            <div>NEXT PIECE</div>
+            <canvas id="next-piece-canvas"></canvas>
+        </div>
+
+        <div id="pause-overlay" class="hidden frosted-glass-overlay">
+          <p>PAUSED</p>
+          <button id="play-button">▶️</button>
+          <div class="level-selector">
+            <label for="restarting-level1">Starting Level: </label>
+            <select id="restarting-level1">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+          </div>
+          <button id="restart-button1" class="button">New Game</button>
+        </div>
+
+        <div id="game-over" class="frosted-glass-overlay">
+            <h1>Game Over</h1>
+            <p>Your score: <span id="final-score">0</span></p>
+            <p>High score: <span id="final-high-score">0</span></p>
+            <div class="level-selector">
+              <label for="restarting-level2">Starting Level: </label>
+              <select id="restarting-level2">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+              </select>
+            </div>
+            <button id="restart-button2" class="button">New Game</button>
+        </div>
+    </div>
+
+    <!-- MediaPipe libraries (loaded dynamically by handControls.js, but can be included here) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- Core game scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <script src="deviceUtils.js"></script>
+    <script src="uiAdapter.js"></script>
+    <script src="touchControls.js"></script>
+    <script src="sounds.js"></script>
+    <script src="handControls.js"></script>
+    <script src="main.js"></script>
+
+</body>
+</html>
